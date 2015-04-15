@@ -1,8 +1,20 @@
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * and open the template in the editor. 
  */
+
+/*
+    autor:          Jhon Edison Gomez      
+    fecha:          14-Abil-2014       
+    descripcion:    creacion funcion actualizar semaforo, falta implementar
+                    conteo para la cola, e ingresar los carros a cada via
+                
+
+
+*/
+
+
 package Simulacion;
 
 import java.util.ArrayList;
@@ -62,16 +74,19 @@ public class Ambiente {
                 else if (i < 4 && j < 179) {
                     corredorSurNorte[i][j] = 0;
                     corredorNorteSur[i][j] = 0;
+                    
                 }// indicadores de semaforos
                 else if ( (i == 1 || i == 2 || i == 3) && j == 179) {
                     corredorSurNorte[i][j] = -1;
                     corredorNorteSur[i + 1][j] = -1;
+                    
                 }
                 else if (j < 179) { // para el cuarto carril
                     corredorNorteSur[i][j] = 0;
                 }
             }
         }
+        
         /**/
         System.out.println("CORREDOR NORTE - SUR");
         for (int i = 0; i < 180; i++) {
@@ -81,20 +96,79 @@ public class Ambiente {
             System.out.println("L" + (i+1));
         }
         
+        //semaforo en rojo
+        ActualizarSemaforo(false);
+
         System.out.println("\nCORREDOR SUR - NORTE");
         for (int i = 0; i < 180; i++) {
             for (int j = 0; j < 4; j++) {
                 System.out.print(corredorSurNorte[j][i] + " ");
             }
             System.out.println("L" + (i + 1));
+            
         }
+        
+        //semaforo en rojo
+        ActualizarSemaforo(false);
+        
     }
     
-    public void cambiarSemaforo(){
-        // Rojo
+    /*
+    funcion para cambiar el semaforo automaticamente
+    la luz del semaforo cambia despues de terminar
+    el temporizador
+
+    true    = verde
+    false   = rojo    
+    
+    */
+    public void ActualizarSemaforo(boolean semaforo){
+
+        if(semaforo){
         
-        // Verde
+            for(int conteo = 5; conteo >= 0; conteo--){
+            
+                //para cambiar semaforo a rojo
+                if(conteo == 0){
+                    semaforo = false;
+                }
+
+                System.out.println(semaforo+" " + conteo);
+                timer();
+                
+            }
+            
+        }else{
+
+            //para cambiar a rojo
+            for(int conteo = 0 ; conteo<= 5;conteo++){
+
+                if(conteo == 5){
+                    semaforo = true;
+                }            
+
+                System.out.println(semaforo+" " + conteo);
+                timer();
+            }
+        
+        }
+                
+    }
+    
+    public void actualizarCola(){
+        
         
     }
+    
+    // para darle un tiempod de un segundo al for del cambio del semaforo
+    public static void timer() {
+     
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+     
+    }     
     
 }
