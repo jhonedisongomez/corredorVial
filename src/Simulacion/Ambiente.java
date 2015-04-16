@@ -10,7 +10,12 @@
     descripcion:    creacion funcion actualizar semaforo, falta implementar
                     conteo para la cola, e ingresar los carros a cada via
                 
-
+    autor:          Jhon Edison Gomez      
+    fecha:          15-Abil-2014       
+    descripcion:    Implementacion actualizar cola, preguntar por que los 
+                    arrayList para la colas y como inserto un vehiculo
+                    en los corredore viales
+           
 
 */
 
@@ -50,7 +55,7 @@ public class Ambiente {
     
     /* PENDIENTE: oreja inicial corredor SN se necesita cola?
        en el desvio tambien se necesita cola?
-        que tipos de carros pueden entrar al desvio?
+        que tipos de carros pueden entrar al desvio? --> vehiculos
     */
     
     public Ambiente() {
@@ -98,7 +103,7 @@ public class Ambiente {
         
         //semaforo en rojo
         ActualizarSemaforo(false);
-
+        actualizarCola();
         System.out.println("\nCORREDOR SUR - NORTE");
         for (int i = 0; i < 180; i++) {
             for (int j = 0; j < 4; j++) {
@@ -154,10 +159,97 @@ public class Ambiente {
         }
                 
     }
+    /*funcion para contar cuanta cola o cuantos carros quedan en 
+    en un semaforo en rojo    */
+    public static int actualizarCola(){
     
-    public void actualizarCola(){
+        //corredor norte sur
+        int totalNSCarril1 = 0;
+        int totalNSCarril2 = 0;
+        int totalNSCarril3 = 0;
+        int totalNSCarril4 = 0;    
         
+        //corredor sur norte
+        int totalSNCarril1 = 0;
+        int totalSNCarril2 = 0;
+        int totalSNCarril3 = 0;
+        int totalSNCarril4 = 0;       
         
+        //totales
+        int total   = 0;
+        int totalNS = 0;
+        int totalSN = 0; 
+    
+        for(int x = 1 ; x < corredorNorteSur.length; x++){
+            
+            for(int y = 179; y >0 ; y--){
+                System.out.println(y +"y " + corredorNorteSur[x][y]);
+                if(corredorNorteSur[x][y] ==1){
+                    totalNSCarril1++;
+                    System.out.println(y +"y " + corredorNorteSur[x][y]);
+                    
+                }
+                //System.out.println(y +" " + corredorNorteSur[x][y]);
+            }
+            for(int a = 179; a > 0; a--){
+                System.out.println(a +"a " + corredorNorteSur[x][a]);
+                if(corredorNorteSur[x][a] ==1){
+                    totalNSCarril2++;
+                    
+                }
+            }
+            
+            for(int b = 179; b > 0; b--){
+                System.out.println(b +"b " + corredorNorteSur[x][b]);
+                if(corredorNorteSur[x][b] ==1){
+                    totalNSCarril3++;
+                    
+                }
+            }
+            
+            for(int c = 179; c > 0; c--){
+                System.out.println(c +"c " + corredorNorteSur[x][c]);
+                if(corredorNorteSur[x][c] ==1){
+                    totalNSCarril4++;
+                    
+                }
+            }            
+        }// cierre for x
+        
+        for(int x = 0 ; x < corredorSurNorte.length; x++){
+            
+            for(int y = 179; y >0 ; y--){
+                if(corredorSurNorte[x][y] ==1){
+                    totalSNCarril1++;
+                }
+                //System.out.println(y +" " + corredorNorteSur[x][y]);
+            }
+            for(int a = 179; a > 0; a--){
+                if(corredorSurNorte[x][a] ==1){
+                    totalSNCarril2++;
+                }
+            }
+            
+            for(int b = 179; b > 0; b--){
+                if(corredorSurNorte[x][b] ==1){
+                    totalSNCarril3++;
+                }
+            }
+            
+            for(int c = 179; c > 0; c--){
+                if(corredorSurNorte[x][c] ==1){
+                    totalSNCarril4++;
+                }
+            }            
+        }// cierre for x
+        
+        //obtemos los totales
+        totalNS = totalNSCarril1 + totalNSCarril2 + totalNSCarril3 + totalNSCarril4;
+        totalSN = totalSNCarril1 + totalSNCarril2 + totalSNCarril3 + totalSNCarril4;
+        
+        //total de todos los autos que estan en la cola en los corredores
+        total = totalNS +  totalSN;
+        return total;
     }
     
     // para darle un tiempod de un segundo al for del cambio del semaforo

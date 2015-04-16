@@ -15,6 +15,8 @@ public class Reglas {
     
     
     // reglas de vencidad, definir el movimiento
-    
-    
+    static int[] adelante = {0}; // libre
+    static int[] adelante2 = {1}; // ocupada
+    static int[] lados = {0, 0};
+    static int[] lados2 = {1,0};
 }
