@@ -2,6 +2,11 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
+    
+    fecha:          19-Abril-2015
+    descripcion:    implementacion asignarCarrilNS desde el archivo ambiente
+
+
  */
 package Simulacion;
 
@@ -11,6 +16,7 @@ import Modelo.Carro;
 import Modelo.Masivo;
 import Modelo.Vehiculo;
 import java.util.ArrayList;
+import java.util.Vector;
 
 /**
  *
@@ -29,7 +35,9 @@ public class Controlador {
         
         // se configura el ambiente con los datos de la interfaz
         Ambiente a = new Ambiente();
+         
         // configurar colas, probabilidad de frenado
+        //a.actualizarCola();
         
         // simulacion de los tres horarios, si el tiempo es cero, no devuelve nada
         for (int i = 0; i < tiemposSimulacion.length; i++) {
@@ -45,28 +53,107 @@ public class Controlador {
     }
     
     private static void simular(int horario, int tiempo, ArrayList tipoVehiculo, Ambiente a, double[][] probabilidadesSN, double[][] probabilidadesNS) {
-        /*
+        /**
         SIMULACION
         */
-        Vehiculo v;
-        int reloj = 0;
-        while (reloj++ < tiempo) {
+        
+        //guardar objetos en vectores para distinguir los carros de los corredores
+        //Vector<Carro> vehiculoNSVector = new Vector<Carro>();
+        //Vector<Vehiculo> vehiculoSNVector = new Vector<Vehiculo>();
+        
+        int [][] datosNS = new int[tiempo][1];
+        
+        //corredor norte sur
+        int carroNS=0, busetaNS=0, camionNS=0, masivoNS=0;
+        int carroSN=0, busetaSN=0, camionSN=0, masivoSN=0;
+        Vehiculo vehiculoNS;
+        Vehiculo vehiculoSN;
+        //int reloj = 0;
+        for(int x = 0; x < 1; x++) {
+            
+            for(int reloj = 0; reloj < tiempo; reloj++) {
             //System.out.println(reloj);
             // corredor SN
             // generar aleatoriamente un vehiculo
-            v = generarVehiculo(horario, probabilidadesSN);
+            vehiculoSN = generarVehiculo(horario, probabilidadesSN);
             
+            if(vehiculoSN != null){
+                switch(vehiculoSN.getIdTipoVehiculo()){
+
+                    case 1:
+                        carroSN++;
+                    break;    
+
+                    case 2:
+                        busetaSN++;
+                    break;
+
+                    case 3:
+                        camionSN++;
+                    break;
+
+                    case 4:
+                        masivoSN++;
+                    break;    
+
+                }//cierre switch    
+                
+                datosNS [reloj][x] = vehiculoSN.getIdTipoVehiculo();
+                
+            }//cierre condicion null
+
             // ubicarlo segun su tipoVehiculo en un carril
             // actualizar ambiente (semaforos, colas) -> aplicar reglas
             
             // corredor NS
             // generar aleatoriamente un vehiculo
-            //v = generarVehiculo(horario, probabilidadesSN);
-            //System.out.println("norte sur" + carros + " " + busetas + " " + camiones + " " + masivos);
-            // ubicarlo segun su tipoVehiculo en un carril
-            // actualizar ambiente (semaforos, colas) -> aplicar reglas
+                vehiculoNS = generarVehiculo(horario, probabilidadesNS);
+                //vehiculoSNVector.add(reloj, vehiculoNS
+                if(vehiculoNS != null){
+
+                    switch(vehiculoNS.getIdTipoVehiculo()){
+
+                        case 1:
+                            carroNS++;
+                        break;    
+
+                        case 2:
+                            busetaNS++;
+                        break;
+
+                        case 3:
+                            camionNS++;
+                        break;
+
+                        case 4:
+                            masivoNS++;
+                        break;     
+
+                    }                
+                }
+             // ubicarlo segun su tipoVehiculo en un carril
+            // actualizar ambiente (semaforos, colas) -> aplicar reglas   
+            
+            }
         }
-        System.out.println("sur norte " + carros + " " + busetas + " " + camiones + " " + masivos);
+        int [][] actualizacion = a.asignarCarrilNS(datosNS);  
+        for(int x = 0 ; x < actualizacion.length ; x++){
+            for(int j = 0;j < actualizacion[x].length; j++){
+                    System.out.print(actualizacion[x][j] + " ");
+                //System.out.print(actualizacion[x][j]);
+            
+            }
+            System.out.println("L" + (x + 1));
+        }
+        
+        //System.out.println("corredor SN"+vehiculoSNVector.size());
+        //System.out.println("corredor NS"+vehiculoNSVector.size());
+        
+        //muestra los valores para el corredor norte sur
+        System.out.println("norte sur " + carroNS + " " + busetaNS + " " + camionNS + " " + masivoNS);        
+        //muestra los valores para el corredor sur norte
+        System.out.println("sur norte " + carroSN + " " + busetaSN + " " + camionSN + " " + masivoSN);
+        
     }
     
     private static Vehiculo generarVehiculo(int horario, double[][] probabilidades) {

@@ -5,24 +5,26 @@
  */
 
 /*
-    autor:          Jhon Edison Gomez      
     fecha:          14-Abil-2014       
     descripcion:    creacion funcion actualizar semaforo, falta implementar
                     conteo para la cola, e ingresar los carros a cada via
                 
-    autor:          Jhon Edison Gomez      
     fecha:          15-Abil-2014       
     descripcion:    Implementacion actualizar cola, preguntar por que los 
                     arrayList para la colas y como inserto un vehiculo
                     en los corredore viales
            
+    fecha:          19-Abil-2014       
+    descripcion:    Creacion e implementacion metodo asignarCarrilNS
 
 */
 
 
 package Simulacion;
 
+import Modelo.Vehiculo;
 import java.util.ArrayList;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -115,6 +117,7 @@ public class Ambiente {
         
         //semaforo en rojo
         ActualizarSemaforo(false);
+        //JOptionPane.showMessageDialog(null, corredorNorteSur.length);
         
     }
     
@@ -161,7 +164,7 @@ public class Ambiente {
     }
     /*funcion para contar cuanta cola o cuantos carros quedan en 
     en un semaforo en rojo    */
-    public static int actualizarCola(){
+    public int actualizarCola(){
     
         //corredor norte sur
         int totalNSCarril1 = 0;
@@ -180,19 +183,19 @@ public class Ambiente {
         int totalNS = 0;
         int totalSN = 0; 
     
-        for(int x = 1 ; x < corredorNorteSur.length; x++){
+        for(int x = 0 ; x < corredorNorteSur.length; x++){
             
             for(int y = 179; y >0 ; y--){
-                System.out.println(y +"y " + corredorNorteSur[x][y]);
+                //System.out.println(y +"y " + corredorNorteSur[x][y]);
                 if(corredorNorteSur[x][y] ==1){
                     totalNSCarril1++;
-                    System.out.println(y +"y " + corredorNorteSur[x][y]);
+                    //System.out.println(y +"y " + corredorNorteSur[x][y]);
                     
                 }
                 //System.out.println(y +" " + corredorNorteSur[x][y]);
             }
             for(int a = 179; a > 0; a--){
-                System.out.println(a +"a " + corredorNorteSur[x][a]);
+                //System.out.println(a +"a " + corredorNorteSur[x][a]);
                 if(corredorNorteSur[x][a] ==1){
                     totalNSCarril2++;
                     
@@ -200,7 +203,7 @@ public class Ambiente {
             }
             
             for(int b = 179; b > 0; b--){
-                System.out.println(b +"b " + corredorNorteSur[x][b]);
+                //System.out.println(b +"b " + corredorNorteSur[x][b]);
                 if(corredorNorteSur[x][b] ==1){
                     totalNSCarril3++;
                     
@@ -208,7 +211,7 @@ public class Ambiente {
             }
             
             for(int c = 179; c > 0; c--){
-                System.out.println(c +"c " + corredorNorteSur[x][c]);
+                //System.out.println(c +"c " + corredorNorteSur[x][c]);
                 if(corredorNorteSur[x][c] ==1){
                     totalNSCarril4++;
                     
@@ -252,8 +255,89 @@ public class Ambiente {
         return total;
     }
     
+    /** esta function posiciona los vehiculos en los
+     *  en los corredores correspondientes  
+     * 
+     * @param vehiculo =recibe  un valor tipo vehiculo para
+     * las operaciones                     
+     * 
+     */
+    public static int [][] asignarCarrilNS (int [][] datos){
+        
+        /*llamamos los corredores con los indices para ingresar Vehiculo*/
+        for(int i = 0 ; i < 180 ; i++ ){
+            for(int j = 0; j < 5; j++){
+                for(int x = 0; x< datos.length; x++){
+                    for(int y = 0; y<datos[x].length;y++){
+
+                        if(datos[x][y] == 4){
+                        //carril para el mio 
+                            if(corredorNorteSur[4][j+1]!= -1){
+                                
+                                if(corredorNorteSur[4][j+1]== 0){
+
+                                    //el masivo solo tiene un carril, por eso no cambia de carril
+                                    corredorNorteSur[4][j+1]= 1;
+                                    //corredorNorteSur[4][j+1]= 1;
+                                    //corredorNorteSur[4][j+2]= 1;
+                                    //corredorNorteSur[4][j+3]= 1;
+                                }
+                            }
+                        }
+                    }        
+                }        
+                    //los que no son masivos     
+                    
+            
+                /*else{
+                       
+                    switch(vehiculo.getIdTipoVehiculo()){
+                        
+                        //carro
+                        case 1:
+                            
+                            if(corredorNorteSur[2][j+1]== 0 && corredorNorteSur[2][j+1]!= -1){
+                                corredorNorteSur[2][j]= 0;
+                                corredorNorteSur[2][j+1]= 1;
+                            }
+                            
+                        break;
+                        
+                        //buseta    
+                        case 2:
+                            
+                            if(corredorNorteSur[3][j+2]== 0 && corredorNorteSur[3][j+1]!= -1){
+                                corredorNorteSur[3][j]= 0;
+                                corredorNorteSur[3][j+1]= 1;
+                                //corredorNorteSur[3][j+2]= 1;
+                            }
+                            
+                        break;
+                        
+                        //camion    
+                        case 3:
+                            
+                            if(corredorNorteSur[3][j+1]== 0 && corredorNorteSur[3][j+1]!= -1) {
+                                corredorNorteSur[3][j]= 0;
+                                corredorNorteSur[3][j+1]= 1;
+                                //corredorNorteSur[4][j+2]= 1;
+                                //corredorNorteSur[4][j+3]= 1;
+                            }
+                        break;
+                            
+                    }//cierre switch
+                }// cierre condicion mio*/   
+                        
+            }//cierre for j
+        }//cierre for i    
+        return corredorNorteSur;
+    }//cierre metodo 
+    
+    
+    /*SUB-FUNCIONES PARA UTILIZAR EL AMBIENTE*/
+    
     // para darle un tiempod de un segundo al for del cambio del semaforo
-    public static void timer() {
+    private static void timer() {
      
         try {
             Thread.sleep(1000);
