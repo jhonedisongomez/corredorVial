@@ -255,83 +255,273 @@ public class Ambiente {
         return total;
     }
     
-    /** esta function posiciona los vehiculos en los
-     *  en los corredores correspondientes  
-     * 
-     * @param vehiculo =recibe  un valor tipo vehiculo para
-     * las operaciones                     
-     * 
-     */
-    public static int [][] asignarCarrilNS (int [][] datos){
+    /**
+     * @param objVehiculo  : el carro generado por el controlador
+     **/
+    public static void actualizarAmbiente(Vehiculo objVehiculo){
         
-        /*llamamos los corredores con los indices para ingresar Vehiculo*/
-        for(int i = 0 ; i < 180 ; i++ ){
-            for(int j = 0; j < 5; j++){
-                for(int x = 0; x< datos.length; x++){
-                    for(int y = 0; y<datos[x].length;y++){
-
-                        if(datos[x][y] == 4){
-                        //carril para el mio 
-                            if(corredorNorteSur[4][j+1]!= -1){
-                                
-                                if(corredorNorteSur[4][j+1]== 0){
-
-                                    //el masivo solo tiene un carril, por eso no cambia de carril
-                                    corredorNorteSur[4][j+1]= 1;
-                                    //corredorNorteSur[4][j+1]= 1;
-                                    //corredorNorteSur[4][j+2]= 1;
-                                    //corredorNorteSur[4][j+3]= 1;
-                                }
-                            }
-                        }
-                    }        
-                }        
-                    //los que no son masivos     
+        //boolean recorrer = true;
+        switch(objVehiculo.getIdTipoVehiculo()){
+                
+            case 4:
+                if(corredorNorteSur[4][0] == 0 && corredorNorteSur[4][1] == 0 
+                        && corredorNorteSur[4][2] == 0 && corredorNorteSur[4][3] == 0){
                     
+                    corredorNorteSur[4][0] = 4;
+                    corredorNorteSur[4][1] = 4;
+                    corredorNorteSur[4][2] = 4;
+                    corredorNorteSur[4][3] = 4;
+                    System.out.println("comiezo carril 4");
+                    //recorrer = false;
+                }
+            break;    
+
+            case 3:
+                if(corredorNorteSur[2][0] == 0 && corredorNorteSur[2][1] == 0 && corredorNorteSur[2][2] == 0){
+                   
+                   corredorNorteSur[2][0] = 3;
+                   corredorNorteSur[2][1] = 3;
+                   corredorNorteSur[2][2] = 3;
+                   System.out.println("comiezo carril 2");
+                   //recorrer = false;
+                   
+                }else if(corredorNorteSur[1][0] == 0 && corredorNorteSur[1][1] == 0 && corredorNorteSur[1][2] == 0){
+                    corredorNorteSur[1][0] = 3;
+                    corredorNorteSur[1][1] = 3;
+                    corredorNorteSur[1][2] = 3;
+                    System.out.println("comiezo carril 1");
+                    //recorrer = false;
+                }
+                
+            break;
+
+            case 2:
+                if(corredorNorteSur[2][0] == 0 && corredorNorteSur[2][1] == 0){
+                   corredorNorteSur[2][0] = 2;
+                   corredorNorteSur[2][1] = 2;
+                   System.out.println("comiezo carril 2");
+                   //recorrer = false;
+                   
+                }if(corredorNorteSur[1][0] == 0 && corredorNorteSur[1][1] == 0){
+                    corredorNorteSur[1][0] = 1;
+                    corredorNorteSur[1][1] = 1;
+                    System.out.println("comiezo carril 1");
+                    //recorrer = false;
+                }
+                
+            break;
             
-                /*else{
-                       
-                    switch(vehiculo.getIdTipoVehiculo()){
-                        
-                        //carro
-                        case 1:
-                            
-                            if(corredorNorteSur[2][j+1]== 0 && corredorNorteSur[2][j+1]!= -1){
-                                corredorNorteSur[2][j]= 0;
-                                corredorNorteSur[2][j+1]= 1;
-                            }
-                            
-                        break;
-                        
-                        //buseta    
-                        case 2:
-                            
-                            if(corredorNorteSur[3][j+2]== 0 && corredorNorteSur[3][j+1]!= -1){
-                                corredorNorteSur[3][j]= 0;
-                                corredorNorteSur[3][j+1]= 1;
-                                //corredorNorteSur[3][j+2]= 1;
-                            }
-                            
-                        break;
-                        
-                        //camion    
-                        case 3:
-                            
-                            if(corredorNorteSur[3][j+1]== 0 && corredorNorteSur[3][j+1]!= -1) {
-                                corredorNorteSur[3][j]= 0;
-                                corredorNorteSur[3][j+1]= 1;
-                                //corredorNorteSur[4][j+2]= 1;
-                                //corredorNorteSur[4][j+3]= 1;
-                            }
-                        break;
-                            
-                    }//cierre switch
-                }// cierre condicion mio*/   
-                        
-            }//cierre for j
-        }//cierre for i    
-        return corredorNorteSur;
-    }//cierre metodo 
+            //para carros    
+            case 1:
+                
+                //para el unico carril
+                if(corredorNorteSur[3][0] == 0){
+                    corredorNorteSur[3][0] = 1;
+                    System.out.println("comiezo carril 3");
+                    //recorrer = false;
+                
+                //para el carril 1    
+                }else if(corredorNorteSur[2][0] == 0){
+                    corredorNorteSur[2][0] = 1;
+                    System.out.println("comiezo carril 2");
+                    //recorrer = false;
+                
+                //para el carril 2    
+                }else if(corredorNorteSur[1][0] == 0){
+                    corredorNorteSur[1][0] = 1;
+                    System.out.println("comiezo carril 1");
+                    //recorrer = false;
+                }
+            break;     
+
+        }// cierre de switch
+        
+        //IMPLEMENTACION DE LAS REGLAS
+         
+        //recorre los carriles para ir ocupando los espacios con los carros
+        for(int posIx = 178 ; posIx >=0; posIx--){       //para el tamaño del corredor       
+
+            //revisar la ultima posicion
+            if(corredorNorteSur[4][178] == 1){
+                corredorNorteSur[4][178] = 0;
+                System.out.println("salio del corredor");
+
+
+                if(corredorNorteSur[3][178] == 1){
+                    corredorNorteSur[3][178] = 0;
+                    System.out.println("salio del corredor");
+
+
+                }else if(corredorNorteSur[2][178] == 1){
+                    corredorNorteSur[2][178] = 0;
+                    System.out.println("salio del corredor");
+
+
+                }else if(corredorNorteSur[1][178] == 1){
+                    corredorNorteSur[1][178] = 0;
+                    System.out.println("salio del corredor");
+
+                }
+                posIx = -1;
+            
+            }else if(corredorNorteSur[3][178] == 1){
+                corredorNorteSur[3][178] = 0;
+                System.out.println("salio del corredor");
+
+                if(corredorNorteSur[4][178] == 1){
+                corredorNorteSur[4][178] = 0;
+                System.out.println("salio del corredor");
+
+                }else if(corredorNorteSur[2][178] == 1){
+                    corredorNorteSur[2][178] = 0;
+                    System.out.println("salio del corredor");
+
+
+                }else if(corredorNorteSur[1][178] == 1){
+                    corredorNorteSur[1][178] = 0;
+                    System.out.println("salio del corredor");
+
+                }
+                posIx = -1; 
+
+            }else if(corredorNorteSur[2][178] == 1){
+                corredorNorteSur[2][178] = 0;
+                System.out.println("salio del corredor");
+
+                if(corredorNorteSur[4][178] == 1){
+                    corredorNorteSur[4][178] = 0;
+                    System.out.println("salio del corredor");
+
+                }else if(corredorNorteSur[3][178] == 1){
+                    corredorNorteSur[3][178] = 0;
+                    System.out.println("salio del corredor");
+
+                }else if(corredorNorteSur[1][178] == 1){
+                    corredorNorteSur[1][178] = 0;
+                    System.out.println("salio del corredor");
+
+                }
+                posIx = -1;                     
+
+            }else if(corredorNorteSur[1][178] == 1){
+                corredorNorteSur[1][178] = 0;
+                System.out.println("salio del corredor");
+
+                if(corredorNorteSur[4][178] == 1){
+                corredorNorteSur[4][178] = 0;
+                System.out.println("salio del corredor");
+
+                }else if(corredorNorteSur[3][178] == 1){
+                    corredorNorteSur[3][178] = 0;
+                    System.out.println("salio del corredor");
+
+                }else if(corredorNorteSur[2][178] == 1){
+                    corredorNorteSur[2][178] = 0;
+                    System.out.println("salio del corredor");
+
+                }
+
+                posIx = -1; 
+
+            
+            //cruce izquierda
+            }else if((corredorNorteSur[2][posIx] == 1) &&  (corredorNorteSur[1][posIx+1] == 0 )
+                    &&  corredorNorteSur[1][posIx] == 0  && corredorNorteSur[2][posIx+1] == 1){
+
+                corredorNorteSur[2][posIx] = 0;
+                corredorNorteSur[1][posIx+1] = 1;
+                System.out.println("Cruce izquierda");
+                posIx = -1;
+
+            }else if(corredorNorteSur[1][posIx] == 1 && corredorNorteSur[2][posIx+1] == 0 
+                    && corredorNorteSur[2][posIx] == 0  && corredorNorteSur[1][posIx+1] == 1){
+
+                corredorNorteSur[1][posIx] = 0;
+                corredorNorteSur[2][posIx+1] = 1;
+                System.out.println("Cruce derecha");
+                posIx = -1;
+
+            }
+
+            //adelanto carril del mio
+            else if(corredorNorteSur[4][posIx] == 1 && corredorNorteSur[4][posIx+1] == 0){
+                
+                corredorNorteSur[4][posIx] = 0;
+                corredorNorteSur[4][posIx+1] = 1;
+                System.out.println("adelanto carril 4");
+                
+                //adelanto demas carriles
+                if(corredorNorteSur[2][posIx] == 1 && corredorNorteSur[1][posIx+1] == 0 
+                    && corredorNorteSur[1][posIx] == 1){
+
+                    corredorNorteSur[2][posIx] = 0;
+                    corredorNorteSur[2][posIx+1] = 1;
+                    System.out.println("adelanto carril 2");
+                    posIx = -1;
+
+                }else if(corredorNorteSur[1][posIx] == 1 && corredorNorteSur[1][posIx+1] == 0 
+                        && corredorNorteSur[2][posIx] == 1){
+
+                    corredorNorteSur[1][posIx] = 0;
+                    corredorNorteSur[1][posIx+1] = 1;
+                    System.out.println("adelanto carril 1");
+                    posIx = -1;
+
+                } else if(corredorNorteSur[3][posIx] == 1 && corredorNorteSur[3][posIx+1] == 0){
+
+                    corredorNorteSur[3][posIx] = 0;
+                    corredorNorteSur[3][posIx+1] = 1;
+                    System.out.println("adelanto carril 3");
+                    posIx = -1;
+                }
+            //adelanto unico carril        
+            }else if(corredorNorteSur[3][posIx] == 1 && corredorNorteSur[3][posIx+1] == 0){
+
+                corredorNorteSur[3][posIx] = 0;
+                corredorNorteSur[3][posIx+1] = 1;
+                System.out.println("adelanto carril 3");
+
+                //adelanto demas carriles    
+                if(corredorNorteSur[2][posIx] == 1 && corredorNorteSur[2][posIx+1] == 0 
+                    && corredorNorteSur[1][posIx] == 1){
+
+                    corredorNorteSur[2][posIx] = 0;
+                    corredorNorteSur[2][posIx+1] = 1;
+                    System.out.println("adelanto carril 2");
+                    posIx = -1;
+
+
+                }else if(corredorNorteSur[1][posIx] == 1 && corredorNorteSur[1][posIx+1] == 0 
+                        && corredorNorteSur[2][posIx] == 1){
+
+                    corredorNorteSur[1][posIx] = 0;
+                    corredorNorteSur[1][posIx+1] = 1;
+                    System.out.println("adelanto carril 1");
+                    posIx = -1;
+
+                }
+
+            //adelanto demas carriles    
+            }else if(corredorNorteSur[2][posIx] == 1 && corredorNorteSur[2][posIx+1] == 0 
+                    && corredorNorteSur[1][posIx] == 1){
+
+                corredorNorteSur[2][posIx] = 0;
+                corredorNorteSur[2][posIx+1] = 1;
+                System.out.println("adelanto carril 2");
+                posIx = -1;
+
+            }else if(corredorNorteSur[1][posIx] == 1 && corredorNorteSur[1][posIx+1] == 0 
+                    && corredorNorteSur[2][posIx] == 1){
+
+                corredorNorteSur[1][posIx] = 0;
+                corredorNorteSur[1][posIx+1] = 1;
+                System.out.println("adelanto carril 1");
+                posIx = -1;
+            }
+
+        }            
+
+    }//cierre del metodo
     
     
     /*SUB-FUNCIONES PARA UTILIZAR EL AMBIENTE*/
