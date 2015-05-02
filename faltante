@@ -1,0 +1,15 @@
+para terminar los automatas falta:
+
+(*) medir el tamaño de los carros y colocarlos en los corredores
+(*) aumentar las velocidades para los diferentes carros
+(*) implementar el tiempo de los semaforos
+(*) crear:
+    - arreglo para la cola 
+    - arreglo para guardar las velocidades
+
+(*) Implementar frenar en el recorrido del carro
+(*) Implementar reglas en el otro corredor
+
+NOTA:   cuando se termina la simulacion implementar los metodos para calcular
+        los promedios de velocidad
+

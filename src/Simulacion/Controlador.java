@@ -16,7 +16,6 @@ import Modelo.Carro;
 import Modelo.Masivo;
 import Modelo.Vehiculo;
 import java.util.ArrayList;
-import java.util.Vector;
 
 /**
  *
@@ -69,82 +68,83 @@ public class Controlador {
         Vehiculo vehiculoNS;
         Vehiculo vehiculoSN;
         //int reloj = 0;
-        for(int x = 0; x < 1; x++) {
+        
             
-            for(int reloj = 0; reloj < tiempo; reloj++) {
-            //System.out.println(reloj);
-            // corredor SN
-            // generar aleatoriamente un vehiculo
-            vehiculoSN = generarVehiculo(horario, probabilidadesSN);
-            
-            if(vehiculoSN != null){
-                switch(vehiculoSN.getIdTipoVehiculo()){
+        for(int reloj = 0; reloj < tiempo; reloj++) {
+        //System.out.println(reloj);
+        // corredor SN
+        // generar aleatoriamente un vehiculo
+        vehiculoSN = generarVehiculo(horario, probabilidadesSN);
+
+        if(vehiculoSN != null){
+            switch(vehiculoSN.getIdTipoVehiculo()){
+
+                case 1:
+                    carroSN++;
+                break;    
+
+                case 2:
+                    busetaSN++;
+                break;
+
+                case 3:
+                    camionSN++;
+                break;
+
+                case 4:
+                    masivoSN++;
+                break;    
+
+            }//cierre switch    
+
+            //datosNS [reloj][x] = vehiculoSN.getIdTipoVehiculo();
+            Ambiente.actualizarAmbiente(vehiculoSN);
+        }//cierre condicion null
+
+        // ubicarlo segun su tipoVehiculo en un carril
+        // actualizar ambiente (semaforos, colas) -> aplicar reglas
+        
+        
+        // corredor NS
+        // generar aleatoriamente un vehiculo
+            vehiculoNS = generarVehiculo(horario, probabilidadesNS);
+            //vehiculoSNVector.add(reloj, vehiculoNS
+            if(vehiculoNS != null){
+
+                switch(vehiculoNS.getIdTipoVehiculo()){
 
                     case 1:
-                        carroSN++;
+                        carroNS++;
                     break;    
 
                     case 2:
-                        busetaSN++;
+                        busetaNS++;
                     break;
 
                     case 3:
-                        camionSN++;
+                        camionNS++;
                     break;
 
                     case 4:
-                        masivoSN++;
-                    break;    
+                        masivoNS++;
+                    break;     
 
-                }//cierre switch    
-                
-                datosNS [reloj][x] = vehiculoSN.getIdTipoVehiculo();
-                
-            }//cierre condicion null
-
-            // ubicarlo segun su tipoVehiculo en un carril
-            // actualizar ambiente (semaforos, colas) -> aplicar reglas
-            
-            // corredor NS
-            // generar aleatoriamente un vehiculo
-                vehiculoNS = generarVehiculo(horario, probabilidadesNS);
-                //vehiculoSNVector.add(reloj, vehiculoNS
-                if(vehiculoNS != null){
-
-                    switch(vehiculoNS.getIdTipoVehiculo()){
-
-                        case 1:
-                            carroNS++;
-                        break;    
-
-                        case 2:
-                            busetaNS++;
-                        break;
-
-                        case 3:
-                            camionNS++;
-                        break;
-
-                        case 4:
-                            masivoNS++;
-                        break;     
-
-                    }                
-                }
-             // ubicarlo segun su tipoVehiculo en un carril
-            // actualizar ambiente (semaforos, colas) -> aplicar reglas   
-            
+                }                
             }
+         // ubicarlo segun su tipoVehiculo en un carril
+        // actualizar ambiente (semaforos, colas) -> aplicar reglas   
+
         }
-        int [][] actualizacion = a.asignarCarrilNS(datosNS);  
-        for(int x = 0 ; x < actualizacion.length ; x++){
-            for(int j = 0;j < actualizacion[x].length; j++){
-                    System.out.print(actualizacion[x][j] + " ");
-                //System.out.print(actualizacion[x][j]);
-            
-            }
-            System.out.println("L" + (x + 1));
-        }
+        
+//        int [][] actualizacion = a.asignarCarrilNS(datosNS);  
+//        for(int x = 0 ; x < actualizacion.length ; x++){
+//            for(int j = 0;j < actualizacion[x].length; j++){
+//                    System.out.print(actualizacion[x][j] + " ");
+//                //System.out.print(actualizacion[x][j]);
+//            
+//            }
+//            System.out.println("L" + (x + 1));
+//        }
         
         //System.out.println("corredor SN"+vehiculoSNVector.size());
         //System.out.println("corredor NS"+vehiculoNSVector.size());
