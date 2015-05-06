@@ -16,8 +16,8 @@ public class Carro extends Vehiculo {
      * @param idTipoVehiculo
      * @param longitudVehiculo
      */
-    public Carro(int idTipoVehiculo, int longitudVehiculo) {
-        super(idTipoVehiculo, longitudVehiculo);
+    public Carro(int idTipoVehiculo, int longitudVehiculo, int espacio, int velocidad) {
+        super(idTipoVehiculo, longitudVehiculo,espacio,velocidad);
     }
     
 }

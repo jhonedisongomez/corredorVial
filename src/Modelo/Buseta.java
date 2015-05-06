@@ -11,8 +11,8 @@ package Modelo;
  */
 public class Buseta extends Vehiculo {
 
-    public Buseta(int idTipoVehiculo, int longitudVehiculo) {
-        super(idTipoVehiculo, longitudVehiculo);
+    public Buseta(int idTipoVehiculo, int longitudVehiculo, int espacio, int velocidad) {
+        super(idTipoVehiculo, longitudVehiculo,espacio,velocidad);
     }
     
 }
