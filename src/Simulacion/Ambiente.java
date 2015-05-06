@@ -27,9 +27,16 @@ import javax.swing.JOptionPane;
  */
 public class Ambiente {
     
+    int espacio = 0;
+    //tipos de vehiculo para la el tipo de disponibilidad del carril
+    Vehiculo objVehiculoVacio = new Vehiculo(0, 0, 0, 0); 
+    Vehiculo objVehiculoSemaforo = new Vehiculo(0, 0, -1, 0);
+    Vehiculo objVehiculoDesvio = new Vehiculo(0, 0, -2, 0);
+    
+    
     // corredores viales
-    private static int[][] corredorNorteSur;
-    private static int [][] corredorSurNorte;
+    private static Vehiculo[][] corredorNorteSur;
+    private static Vehiculo [][] corredorSurNorte;
     
     // colas corredor norte sur
     private ArrayList cola1CorredorNS;
@@ -56,9 +63,23 @@ public class Ambiente {
     */
     
     public Ambiente() {
-        corredorNorteSur = new int[5][180];
+        corredorNorteSur = new Vehiculo[5][180];
         // carril 3 -> -2 hasta casilla 52
-        corredorSurNorte = new int[4][180];
+        corredorSurNorte = new Vehiculo[4][180];
+            
+        //todos tienen por defecto un vehiculo vacio
+        for(int i = 0; i < 5; i++){
+            for(int j = 0; j < 180; j++){
+                
+                if(i< 4){
+                    corredorSurNorte[i][j] = objVehiculoVacio;
+                }
+                
+                corredorNorteSur[i][j] = objVehiculoVacio;
+                
+                
+            }
+        }
         
         // Inicializar los dos corredores
         // i filas, j columnas
@@ -66,25 +87,25 @@ public class Ambiente {
             for(int j = 0; j < 180; j++) {
                 if (i == 0) {// se setean los limites del corredor norte sur y los cruces
                     if ( j == (40 - 1) || j == (62 -1) || j == (101 - 1) || j == (144 - 1) )
-                        corredorNorteSur[0][j] = 0;
+                        corredorNorteSur[0][j] = objVehiculoVacio;
                     else // valor no valido para posicionar un vehiculo
-                        corredorNorteSur[0][j] = -2;
+                        corredorNorteSur[0][j] = objVehiculoDesvio;
                 }
                 else if (i == 2 && j < 52) { // tercer carril Sur - Norte, no existe
-                    corredorSurNorte[i][j] = -2;
+                    corredorSurNorte[i][j] = objVehiculoDesvio;
                 }
                 else if (i < 4 && j < 179) {
-                    corredorSurNorte[i][j] = 0;
-                    corredorNorteSur[i][j] = 0;
+                    corredorSurNorte[i][j] = objVehiculoVacio;
+                    corredorNorteSur[i][j] = objVehiculoVacio;
                     
                 }// indicadores de semaforos
                 else if ( (i == 1 || i == 2 || i == 3) && j == 179) {
-                    corredorSurNorte[i][j] = -1;
-                    corredorNorteSur[i + 1][j] = -1;
+                    corredorSurNorte[i][j] = objVehiculoSemaforo;
+                    corredorNorteSur[i + 1][j] = objVehiculoSemaforo;
                     
                 }
                 else if (j < 179) { // para el cuarto carril
-                    corredorNorteSur[i][j] = 0;
+                    corredorNorteSur[i][j] = objVehiculoVacio;
                 }
             }
         }
@@ -93,197 +114,107 @@ public class Ambiente {
         System.out.println("CORREDOR NORTE - SUR");
         for (int i = 0; i < 180; i++) {
             for (int j = 0; j < 5; j++) {
-                System.out.print(corredorNorteSur[j][i] + " ");
+                espacio = corredorNorteSur[j][i].getEspacio();
+                //JOptionPane.showMessageDialog(null, corredorNorteSur[j][i].getEspacio());
+                System.out.print(espacio + " ");
             }
             System.out.println("L" + (i+1));
         }
         
-        //semaforo en rojo
-        ActualizarSemaforo(false);
-        actualizarCola();
         System.out.println("\nCORREDOR SUR - NORTE");
         for (int i = 0; i < 180; i++) {
             for (int j = 0; j < 4; j++) {
-                System.out.print(corredorSurNorte[j][i] + " ");
+                System.out.print(corredorSurNorte[j][i].getEspacio() + " ");
             }
             System.out.println("L" + (i + 1));
             
         }
         
-        //semaforo en rojo
-        ActualizarSemaforo(false);
-        //JOptionPane.showMessageDialog(null, corredorNorteSur.length);
-        
-    }
-    
-    /*
-    funcion para cambiar el semaforo automaticamente
-    la luz del semaforo cambia despues de terminar
-    el temporizador
-
-    true    = verde
-    false   = rojo    
-    
-    */
-    public void ActualizarSemaforo(boolean semaforo){
-
-        if(semaforo){
-        
-            for(int conteo = 5; conteo >= 0; conteo--){
-            
-                //para cambiar semaforo a rojo
-                if(conteo == 0){
-                    semaforo = false;
-                }
-
-                System.out.println(semaforo+" " + conteo);
-                timer();
-                
-            }
-            
-        }else{
-
-            //para cambiar a rojo
-            for(int conteo = 0 ; conteo<= 5;conteo++){
-
-                if(conteo == 5){
-                    semaforo = true;
-                }            
-
-                System.out.println(semaforo+" " + conteo);
-                timer();
-            }
-        
-        }
-                
-    }
-    /*funcion para contar cuanta cola o cuantos carros quedan en 
-    en un semaforo en rojo    */
-    public int actualizarCola(){
-    
-        //corredor norte sur
-        int totalNSCarril1 = 0;
-        int totalNSCarril2 = 0;
-        int totalNSCarril3 = 0;
-        int totalNSCarril4 = 0;    
-        
-        //corredor sur norte
-        int totalSNCarril1 = 0;
-        int totalSNCarril2 = 0;
-        int totalSNCarril3 = 0;
-        int totalSNCarril4 = 0;       
-        
-        //totales
-        int total   = 0;
-        int totalNS = 0;
-        int totalSN = 0; 
-    
-        for(int x = 0 ; x < corredorNorteSur.length; x++){
-            
-            for(int y = 179; y >0 ; y--){
-                //System.out.println(y +"y " + corredorNorteSur[x][y]);
-                if(corredorNorteSur[x][y] ==1){
-                    totalNSCarril1++;
-                    //System.out.println(y +"y " + corredorNorteSur[x][y]);
-                    
-                }
-                //System.out.println(y +" " + corredorNorteSur[x][y]);
-            }
-            for(int a = 179; a > 0; a--){
-                //System.out.println(a +"a " + corredorNorteSur[x][a]);
-                if(corredorNorteSur[x][a] ==1){
-                    totalNSCarril2++;
-                    
-                }
-            }
-            
-            for(int b = 179; b > 0; b--){
-                //System.out.println(b +"b " + corredorNorteSur[x][b]);
-                if(corredorNorteSur[x][b] ==1){
-                    totalNSCarril3++;
-                    
-                }
-            }
-            
-            for(int c = 179; c > 0; c--){
-                //System.out.println(c +"c " + corredorNorteSur[x][c]);
-                if(corredorNorteSur[x][c] ==1){
-                    totalNSCarril4++;
-                    
-                }
-            }            
-        }// cierre for x
-        
-        for(int x = 0 ; x < corredorSurNorte.length; x++){
-            
-            for(int y = 179; y >0 ; y--){
-                if(corredorSurNorte[x][y] ==1){
-                    totalSNCarril1++;
-                }
-                //System.out.println(y +" " + corredorNorteSur[x][y]);
-            }
-            for(int a = 179; a > 0; a--){
-                if(corredorSurNorte[x][a] ==1){
-                    totalSNCarril2++;
-                }
-            }
-            
-            for(int b = 179; b > 0; b--){
-                if(corredorSurNorte[x][b] ==1){
-                    totalSNCarril3++;
-                }
-            }
-            
-            for(int c = 179; c > 0; c--){
-                if(corredorSurNorte[x][c] ==1){
-                    totalSNCarril4++;
-                }
-            }            
-        }// cierre for x
-        
-        //obtemos los totales
-        totalNS = totalNSCarril1 + totalNSCarril2 + totalNSCarril3 + totalNSCarril4;
-        totalSN = totalSNCarril1 + totalSNCarril2 + totalSNCarril3 + totalSNCarril4;
-        
-        //total de todos los autos que estan en la cola en los corredores
-        total = totalNS +  totalSN;
-        return total;
     }
     
     /**
      * @param objVehiculo  : el carro generado por el controlador
+     * @param tiempo : tiempo en el cual se esta ejecutando la simulacion
      **/
-    public static void actualizarAmbiente(Vehiculo objVehiculo){
+    public static void actualizarAmbiente(Vehiculo objVehiculo, int tiempo){
         
+        int tipoVehiculo = objVehiculo.getIdTipoVehiculo();
         //boolean recorrer = true;
-        switch(objVehiculo.getIdTipoVehiculo()){
+        
+        //para implementar los tiempos
+        if(tiempo !=0){
+            
+            //recorre los carriles para ir ocupando los espacios con los carros
+            for(int carrIx =3; carrIx >=0;carrIx--){        //recorre los carriles
+                for(int posIx = 178 ; posIx >=0; posIx--){  //para el tamaño del corredor       
+
+                    //implementacion de las reglas
+
+                    //adelantar al frente
+                    if(carrIx+1 <= 4 && posIx+1 < 179){
+
+                        if(corredorNorteSur[carrIx][posIx].getEspacio()> 0 && corredorNorteSur[carrIx][posIx+1].getEspacio()== 0
+                                && (corredorNorteSur[carrIx+1][posIx].getEspacio() > 0 || corredorNorteSur[carrIx-1][posIx].getEspacio() == -2 )){
+                           
+                            
+                            Vehiculo.avanzarFrente(corredorNorteSur, carrIx, posIx);
+
+                        //para los cruces de los carriles        
+                        }else{
+                            
+                            if(carrIx == 2 || carrIx == 1){
+                                
+                                if(corredorNorteSur[2][posIx].getEspacio() > 0 &&  corredorNorteSur[1][posIx+1].getEspacio() == 0 
+                                    &&  corredorNorteSur[1][posIx].getEspacio() == 0  && corredorNorteSur[2][posIx+1].getEspacio() > 0){
+
+                                    Vehiculo.adelantarDerecha(corredorNorteSur, carrIx, posIx);
+
+                                //cruce izquierda    
+                                }else if(corredorNorteSur[1][posIx].getEspacio() > 0 &&  corredorNorteSur[2][posIx+1].getEspacio() == 0 
+                                    &&  corredorNorteSur[2][posIx].getEspacio() == 0  && corredorNorteSur[1][posIx+1].getEspacio() > 0){
+
+                                    Vehiculo.adelantarIzquierda(corredorNorteSur, carrIx, posIx);
+
+                                }    
+                            }
+                        }
+                    }
+                }
+            }            
+        }
+        
+        //comienzo de los carriles
+        switch(tipoVehiculo){
                 
             case 4:
-                if(corredorNorteSur[4][0] == 0 && corredorNorteSur[4][1] == 0 
-                        && corredorNorteSur[4][2] == 0 && corredorNorteSur[4][3] == 0){
+                if(corredorNorteSur[4][0].getEspacio() == 0 && corredorNorteSur[4][1].getEspacio() == 0 
+                        && corredorNorteSur[4][2].getEspacio() == 0 && corredorNorteSur[4][3].getEspacio() == 0){
                     
-                    corredorNorteSur[4][0] = 4;
-                    corredorNorteSur[4][1] = 4;
-                    corredorNorteSur[4][2] = 4;
-                    corredorNorteSur[4][3] = 4;
+                    corredorNorteSur[4][0] = objVehiculo;
+                    corredorNorteSur[4][1] = objVehiculo;
+                    corredorNorteSur[4][2] = objVehiculo;
+                    corredorNorteSur[4][3] = objVehiculo;
                     System.out.println("comiezo carril 4");
                     //recorrer = false;
                 }
+                
             break;    
 
             case 3:
-                if(corredorNorteSur[2][0] == 0 && corredorNorteSur[2][1] == 0 && corredorNorteSur[2][2] == 0){
+                
+                if(corredorNorteSur[2][0].getEspacio() == 0 && corredorNorteSur[2][1].getEspacio() == 0 && corredorNorteSur[2][2].getEspacio() == 0){
                    
-                   corredorNorteSur[2][0] = 3;
-                   corredorNorteSur[2][1] = 3;
-                   corredorNorteSur[2][2] = 3;
+                   corredorNorteSur[2][0] = objVehiculo;
+                   corredorNorteSur[2][1] = objVehiculo;
+                   corredorNorteSur[2][2] = objVehiculo;
                    System.out.println("comiezo carril 2");
                    //recorrer = false;
                    
-                }else if(corredorNorteSur[1][0] == 0 && corredorNorteSur[1][1] == 0 && corredorNorteSur[1][2] == 0){
-                    corredorNorteSur[1][0] = 3;
-                    corredorNorteSur[1][1] = 3;
-                    corredorNorteSur[1][2] = 3;
+                }else if(corredorNorteSur[1][0].getEspacio() == 0 && corredorNorteSur[1][1].getEspacio() == 0 && corredorNorteSur[1][2].getEspacio() == 0){
+                    
+                    corredorNorteSur[1][0] = objVehiculo;
+                    corredorNorteSur[1][1] = objVehiculo;
+                    corredorNorteSur[1][2] = objVehiculo;
                     System.out.println("comiezo carril 1");
                     //recorrer = false;
                 }
@@ -291,15 +222,17 @@ public class Ambiente {
             break;
 
             case 2:
-                if(corredorNorteSur[2][0] == 0 && corredorNorteSur[2][1] == 0){
-                   corredorNorteSur[2][0] = 2;
-                   corredorNorteSur[2][1] = 2;
+                if(corredorNorteSur[2][0].getEspacio() == 0 && corredorNorteSur[2][1].getEspacio() == 0){
+                   
+                   corredorNorteSur[2][0] = objVehiculo;
+                   corredorNorteSur[2][1] = objVehiculo;
                    System.out.println("comiezo carril 2");
                    //recorrer = false;
                    
-                }if(corredorNorteSur[1][0] == 0 && corredorNorteSur[1][1] == 0){
-                    corredorNorteSur[1][0] = 1;
-                    corredorNorteSur[1][1] = 1;
+                }else if(corredorNorteSur[1][0].getEspacio() == 0 && corredorNorteSur[1][1].getEspacio() == 0){
+                    
+                    corredorNorteSur[1][0] = objVehiculo;
+                    corredorNorteSur[1][1] = objVehiculo;
                     System.out.println("comiezo carril 1");
                     //recorrer = false;
                 }
@@ -310,136 +243,63 @@ public class Ambiente {
             case 1:
                 
                 //para el unico carril
-                if(corredorNorteSur[3][0] == 0){
-                    corredorNorteSur[3][0] = 1;
+                if(corredorNorteSur[3][0].getEspacio() == 0){
+                   
+                    corredorNorteSur[3][0] = objVehiculo;
                     System.out.println("comiezo carril 3");
                     //recorrer = false;
                 
                 //para el carril 1    
-                }else if(corredorNorteSur[2][0] == 0){
-                    corredorNorteSur[2][0] = 1;
+                }else if(corredorNorteSur[2][0].getEspacio() == 0){
+                    
+                    corredorNorteSur[2][0] = objVehiculo;
                     System.out.println("comiezo carril 2");
                     //recorrer = false;
                 
                 //para el carril 2    
-                }else if(corredorNorteSur[1][0] == 0){
-                    corredorNorteSur[1][0] = 1;
+                }else if(corredorNorteSur[1][0].getEspacio() == 0){
+                    
+                    corredorNorteSur[1][0] = objVehiculo;
                     System.out.println("comiezo carril 1");
                     //recorrer = false;
                 }
+                
             break;     
 
         }// cierre de switch
         
-        
         //revisar la ultima posicion
-        if(corredorNorteSur[4][178] == 1){
-            corredorNorteSur[4][178] = 0;
-            System.out.println("salio del corredor");
-
-
-            if(corredorNorteSur[3][178] == 1){
-                corredorNorteSur[3][178] = 0;
-                System.out.println("salio del corredor");
-
-
-            }else if(corredorNorteSur[2][178] == 1){
-                corredorNorteSur[2][178] = 0;
-                System.out.println("salio del corredor");
-
-
-            }else if(corredorNorteSur[1][178] == 1){
-                corredorNorteSur[1][178] = 0;
-                System.out.println("salio del corredor");
-
-            }
+        if(corredorNorteSur[4][178].getEspacio() > 0){
             
-
-        }else if(corredorNorteSur[3][178] == 1){
-            corredorNorteSur[3][178] = 0;
+            corredorNorteSur[4][178] = objVehiculo;
             System.out.println("salio del corredor");
-
-            if(corredorNorteSur[4][178] == 1){
-            corredorNorteSur[4][178] = 0;
-            System.out.println("salio del corredor");
-
-            }else if(corredorNorteSur[2][178] == 1){
-                corredorNorteSur[2][178] = 0;
-                System.out.println("salio del corredor");
-
-
-            }else if(corredorNorteSur[1][178] == 1){
-                corredorNorteSur[1][178] = 0;
-                System.out.println("salio del corredor");
-
-            }
-             
-
-        }else if(corredorNorteSur[2][178] == 1){
-            corredorNorteSur[2][178] = 0;
-            System.out.println("salio del corredor");
-
-            if(corredorNorteSur[4][178] == 1){
-                corredorNorteSur[4][178] = 0;
-                System.out.println("salio del corredor");
-
-            }else if(corredorNorteSur[3][178] == 1){
-                corredorNorteSur[3][178] = 0;
-                System.out.println("salio del corredor");
-
-            }else if(corredorNorteSur[1][178] == 1){
-                corredorNorteSur[1][178] = 0;
-                System.out.println("salio del corredor");
-
-            }
-   
-        }else if(corredorNorteSur[1][178] == 1){
-            corredorNorteSur[1][178] = 0;
-            System.out.println("salio del corredor");
-
-            if(corredorNorteSur[4][178] == 1){
-            corredorNorteSur[4][178] = 0;
-            System.out.println("salio del corredor");
-
-            }else if(corredorNorteSur[3][178] == 1){
-                corredorNorteSur[3][178] = 0;
-                System.out.println("salio del corredor");
-
-            }else if(corredorNorteSur[2][178] == 1){
-                corredorNorteSur[2][178] = 0;
-                System.out.println("salio del corredor");
-
-            }
-
+            JOptionPane.showMessageDialog(null, "salio 4");
         }        
-        
-        //IMPLEMENTACION DE LAS REGLAS
-         
-        //recorre los carriles para ir ocupando los espacios con los carros
-        for(int carrIx =5; carrIx >=0;carrIx--){        //recorre los carriles
-            for(int posIx = 178 ; posIx >=0; posIx--){  //para el tamaño del corredor       
-                
-                
-                
-            }
+
+        if(corredorNorteSur[3][178].getEspacio() > 0){
+            
+            corredorNorteSur[3][178] = objVehiculo;
+            System.out.println("salio del corredor 3");
             
         }
+        
+        if(corredorNorteSur[2][178].getEspacio() >0 ){
             
-    
+            corredorNorteSur[2][178] = objVehiculo;
+            System.out.println("salio del corredor");
+            JOptionPane.showMessageDialog(null, "salio 2");    
+        }
+        
+        if(corredorNorteSur[1][178].getEspacio() > 0){
+            
+            corredorNorteSur[1][178] = objVehiculo;
+            System.out.println("salio del corredor");
+            JOptionPane.showMessageDialog(null, "salio 1");    
+        }
+        
+         
     }//cierre del metodo
     
-    
     /*SUB-FUNCIONES PARA UTILIZAR EL AMBIENTE*/
-    
-    // para darle un tiempod de un segundo al for del cambio del semaforo
-    private static void timer() {
-     
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
-     
-    }     
     
 }

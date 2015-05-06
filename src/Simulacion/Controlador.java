@@ -98,7 +98,7 @@ public class Controlador {
             }//cierre switch    
 
             //datosNS [reloj][x] = vehiculoSN.getIdTipoVehiculo();
-            Ambiente.actualizarAmbiente(vehiculoSN);
+            Ambiente.actualizarAmbiente(vehiculoSN,reloj);
         }//cierre condicion null
 
         // ubicarlo segun su tipoVehiculo en un carril
@@ -164,20 +164,20 @@ public class Controlador {
                                                      && aleatorio >= probabilidades[horario][2]
                                                      && aleatorio >= probabilidades[horario][3]) {
             carros++;
-            return new Carro(1,1);
+            return new Carro(1,1,1,0);
         }
         else if (aleatorio <= probabilidades[horario][1]    && aleatorio >= probabilidades[horario][2]
                                                             && aleatorio >= probabilidades[horario][3]) {
             busetas++;
-            return new Buseta(2,2);
+            return new Buseta(2,2,2,0);
         }
         else if (aleatorio <= probabilidades[horario][2] && aleatorio >= probabilidades[horario][3]) {
             camiones++;
-            return new Camion(3,3);
+            return new Camion(3,3,3,0);
         }
         else if (aleatorio <= probabilidades[horario][3]) {
             masivos++;
-            return new Masivo(4,4);
+            return new Masivo(4,4,4,0);
         }
         /*else {
             generarVehiculo(horario, probabilidades);
