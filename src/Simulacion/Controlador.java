@@ -98,7 +98,7 @@ public class Controlador {
             }//cierre switch    
 
             //datosNS [reloj][x] = vehiculoSN.getIdTipoVehiculo();
-            Ambiente.actualizarAmbiente(vehiculoSN,reloj);
+            Ambiente.actualizarAmbiente(vehiculoSN,reloj,"norteSur");
         }//cierre condicion null
 
         // ubicarlo segun su tipoVehiculo en un carril

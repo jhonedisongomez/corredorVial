@@ -17,8 +17,10 @@
 
 package Simulacion;
 
+import Modelo.Seccion;
 import Modelo.Vehiculo;
 import java.util.ArrayList;
+import java.util.Vector;
 import javax.swing.JOptionPane;
 
 /**
@@ -33,10 +35,19 @@ public class Ambiente {
     Vehiculo objVehiculoSemaforo = new Vehiculo(0, 0, -1, 0);
     Vehiculo objVehiculoDesvio = new Vehiculo(0, 0, -2, 0);
     
+    static Seccion objSeccionEmpty = new Seccion(true, null, 2);
+    static Seccion objSeccionNoDesvio = new Seccion(true, null, -2);
+    static Seccion objSeccionSemaforo = new Seccion(true, null, -1);
+    static Seccion objSeccionMasivo = new Seccion(true, null, 4);
+    static Seccion objSeccionCarro = new Seccion(true, null, 3);
+    static Seccion objSeccionSiDesvio = new Seccion(true, null, 0);
+    
     
     // corredores viales
-    private static Vehiculo[][] corredorNorteSur;
-    private static Vehiculo [][] corredorSurNorte;
+    private static Seccion [][] corredorNorteSur;
+    private static Seccion [][] corredorSurNorte;
+    
+    
     
     // colas corredor norte sur
     private ArrayList cola1CorredorNS;
@@ -63,19 +74,19 @@ public class Ambiente {
     */
     
     public Ambiente() {
-        corredorNorteSur = new Vehiculo[5][180];
+        corredorNorteSur = new Seccion[5][180];
         // carril 3 -> -2 hasta casilla 52
-        corredorSurNorte = new Vehiculo[4][180];
+        corredorSurNorte = new Seccion[4][180];
             
         //todos tienen por defecto un vehiculo vacio
         for(int i = 0; i < 5; i++){
             for(int j = 0; j < 180; j++){
                 
                 if(i< 4){
-                    corredorSurNorte[i][j] = objVehiculoVacio;
+                    corredorSurNorte[i][j] = objSeccionEmpty;
                 }
                 
-                corredorNorteSur[i][j] = objVehiculoVacio;
+                corredorNorteSur[i][j] = objSeccionEmpty;
                 
                 
             }
@@ -87,25 +98,35 @@ public class Ambiente {
             for(int j = 0; j < 180; j++) {
                 if (i == 0) {// se setean los limites del corredor norte sur y los cruces
                     if ( j == (40 - 1) || j == (62 -1) || j == (101 - 1) || j == (144 - 1) )
-                        corredorNorteSur[0][j] = objVehiculoVacio;
+                        corredorNorteSur[0][j] = objSeccionSiDesvio;
                     else // valor no valido para posicionar un vehiculo
-                        corredorNorteSur[0][j] = objVehiculoDesvio;
+                        corredorNorteSur[0][j] = objSeccionNoDesvio;
                 }
                 else if (i == 2 && j < 52) { // tercer carril Sur - Norte, no existe
-                    corredorSurNorte[i][j] = objVehiculoDesvio;
+                    corredorSurNorte[i][j] = objSeccionNoDesvio;
                 }
+                
+                else if(i == 2 && j <179){
+                    corredorSurNorte[i][j] = objSeccionCarro;
+                    
+                    
+                }else if(i == 3 && j <179){
+                    corredorNorteSur[i][j] = objSeccionCarro;
+                }
+                
                 else if (i < 4 && j < 179) {
-                    corredorSurNorte[i][j] = objVehiculoVacio;
-                    corredorNorteSur[i][j] = objVehiculoVacio;
+                    corredorSurNorte[i][j] = objSeccionEmpty;
+                    corredorNorteSur[i][j] = objSeccionEmpty;
                     
                 }// indicadores de semaforos
                 else if ( (i == 1 || i == 2 || i == 3) && j == 179) {
-                    corredorSurNorte[i][j] = objVehiculoSemaforo;
-                    corredorNorteSur[i + 1][j] = objVehiculoSemaforo;
+                    corredorSurNorte[i][j] = objSeccionSemaforo;
+                    corredorNorteSur[i + 1][j] = objSeccionSemaforo;
                     
                 }
                 else if (j < 179) { // para el cuarto carril
-                    corredorNorteSur[i][j] = objVehiculoVacio;
+                    corredorSurNorte [3][j] = objSeccionMasivo;
+                    corredorNorteSur[i][j] = objSeccionMasivo;
                 }
             }
         }
@@ -114,7 +135,7 @@ public class Ambiente {
         System.out.println("CORREDOR NORTE - SUR");
         for (int i = 0; i < 180; i++) {
             for (int j = 0; j < 5; j++) {
-                espacio = corredorNorteSur[j][i].getEspacio();
+                espacio = corredorNorteSur[j][i].getTipoSeccion();
                 //JOptionPane.showMessageDialog(null, corredorNorteSur[j][i].getEspacio());
                 System.out.print(espacio + " ");
             }
@@ -124,7 +145,7 @@ public class Ambiente {
         System.out.println("\nCORREDOR SUR - NORTE");
         for (int i = 0; i < 180; i++) {
             for (int j = 0; j < 4; j++) {
-                System.out.print(corredorSurNorte[j][i].getEspacio() + " ");
+                System.out.print(corredorSurNorte[j][i].getTipoSeccion() + " ");
             }
             System.out.println("L" + (i + 1));
             
@@ -136,170 +157,865 @@ public class Ambiente {
      * @param objVehiculo  : el carro generado por el controlador
      * @param tiempo : tiempo en el cual se esta ejecutando la simulacion
      **/
-    public static void actualizarAmbiente(Vehiculo objVehiculo, int tiempo){
+    public static void actualizarAmbiente(Vehiculo objVehiculo, int tiempo,String corredor){
         
         int tipoVehiculo = objVehiculo.getIdTipoVehiculo();
-        //boolean recorrer = true;
+        Seccion seccionMixta = new Seccion(false, objVehiculo, 2);
+        Seccion seccionCarro = new Seccion(false, objVehiculo, 3);
+        Seccion seccionMasivo = new Seccion(false, objVehiculo, 4);
         
-        //para implementar los tiempos
-        if(tiempo !=0){
+        if(corredor.equals("norteSur")){
             
-            //recorre los carriles para ir ocupando los espacios con los carros
-            for(int carrIx =3; carrIx >=0;carrIx--){        //recorre los carriles
-                for(int posIx = 178 ; posIx >=0; posIx--){  //para el tamaño del corredor       
+            
+            //terminamos los vehiculos
+            if(!corredorNorteSur[1][178].isEmpty()){
+                
+               int tipo = corredorNorteSur[1][178].getObjVehiculo().getIdTipoVehiculo();
+                
+               switch(tipo){
+                   
+                   case 1:
+                       corredorNorteSur[1][178] = objSeccionEmpty;
+                       JOptionPane.showMessageDialog(null, "salio");
+                   break;
+                       
+                   case 2:
+                       corredorNorteSur[1][178] = objSeccionEmpty;
+                       corredorNorteSur[1][177] = objSeccionEmpty;
+                       JOptionPane.showMessageDialog(null, "salio");
+                   break;
+                       
+                   case 3:
+                       corredorNorteSur[1][178] = objSeccionEmpty;
+                       corredorNorteSur[1][177] = objSeccionEmpty;
+                       corredorNorteSur[1][176] = objSeccionEmpty;
+                       JOptionPane.showMessageDialog(null, "salio");
+                   break;
+                       
+               }
+                       
+            }
+            
+            if(!corredorNorteSur[2][178].isEmpty()){
+                JOptionPane.showMessageDialog(null, "salio");
+               int tipo = corredorNorteSur[2][178].getObjVehiculo().getIdTipoVehiculo();
+                
+               switch(tipo){
+                   
+                   case 1:
+                       corredorNorteSur[2][178] = objSeccionEmpty;
+                   break;
+                       
+                   case 2:
+                       corredorNorteSur[2][178] = objSeccionEmpty;
+                       corredorNorteSur[2][177] = objSeccionEmpty;
+                       
+                   break;
+                       
+                   case 3:
+                       corredorNorteSur[2][178] = objSeccionEmpty;
+                       corredorNorteSur[2][177] = objSeccionEmpty;
+                       corredorNorteSur[2][176] = objSeccionEmpty;
+                   break;
+                       
+               }
+                       
+            }
+            
+            if(!corredorNorteSur[3][178].isEmpty()){
+                corredorNorteSur[3][178] = objSeccionCarro;
+            }
+            
+            if(!corredorNorteSur[3][178].isEmpty()){
+                
+                corredorNorteSur[3][178] = objSeccionMasivo;
+                corredorNorteSur[3][177] = objSeccionMasivo;
+                corredorNorteSur[3][176] = objSeccionMasivo;
+                corredorNorteSur[3][175] = objSeccionMasivo;
+            }
 
-                    //implementacion de las reglas
+    
+//            if(tiempo >0){
+                //Implementacion de las reglas 
 
-                    //adelantar al frente
-                    if(carrIx+1 <= 4 && posIx+1 < 179){
+                for(int posIx = 179 ; posIx>= 0; posIx--){
+                    
+                    if(!corredorNorteSur[1][178].isEmpty()){
+                        JOptionPane.showMessageDialog(null, "termino");
+                    }
+                    
+                    if(!corredorNorteSur[1][posIx].isEmpty()){
+                        int tipoVehCurr1 = corredorNorteSur[1][posIx].getObjVehiculo().getIdTipoVehiculo();
 
-                        if(corredorNorteSur[carrIx][posIx].getEspacio()> 0 && corredorNorteSur[carrIx][posIx+1].getEspacio()== 0
-                                && (corredorNorteSur[carrIx+1][posIx].getEspacio() > 0 || corredorNorteSur[carrIx-1][posIx].getEspacio() == -2 )){
-                           
-                            
-                            Vehiculo.avanzarFrente(corredorNorteSur, carrIx, posIx);
+                        Seccion movCarMix = new Seccion(false, objVehiculo, 2);
+                        Seccion movSoloCar = new Seccion(false, objVehiculo, 3);
+                        Seccion movSoloMasivo = new Seccion(false, objVehiculo, 4);
 
-                        //para los cruces de los carriles        
-                        }else{
-                            
-                            if(carrIx == 2 || carrIx == 1){
-                                
-                                if(corredorNorteSur[2][posIx].getEspacio() > 0 &&  corredorNorteSur[1][posIx+1].getEspacio() == 0 
-                                    &&  corredorNorteSur[1][posIx].getEspacio() == 0  && corredorNorteSur[2][posIx+1].getEspacio() > 0){
 
-                                    Vehiculo.adelantarDerecha(corredorNorteSur, carrIx, posIx);
+                        switch(tipoVehCurr1){
 
-                                //cruce izquierda    
-                                }else if(corredorNorteSur[1][posIx].getEspacio() > 0 &&  corredorNorteSur[2][posIx+1].getEspacio() == 0 
-                                    &&  corredorNorteSur[2][posIx].getEspacio() == 0  && corredorNorteSur[1][posIx+1].getEspacio() > 0){
+                            case 1:
 
-                                    Vehiculo.adelantarIzquierda(corredorNorteSur, carrIx, posIx);
+                                if(corredorNorteSur[1][posIx+1].isEmpty() && corredorNorteSur[2][posIx].isEmpty()
+                                    && corredorNorteSur[0][posIx+1].getTipoSeccion() == -2){
 
-                                }    
-                            }
+                                    corredorNorteSur[1][posIx+1] = movCarMix;
+                                    corredorNorteSur[1][posIx] = objSeccionEmpty; 
+                                    System.out.println("adelanto carril 1");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorNorteSur[1][posIx+1].isEmpty() && !corredorNorteSur[2][posIx].isEmpty() 
+                                        && corredorNorteSur[0][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorNorteSur[1][posIx+1] = movCarMix;
+                                    corredorNorteSur[1][posIx] = objSeccionEmpty; 
+                                    System.out.println("adelanto carril 1");
+
+                                //cruzar    
+                                }else if(corredorNorteSur[2][posIx+1].isEmpty() && !corredorNorteSur[1][posIx+1].isEmpty() 
+                                        && corredorNorteSur[0][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorNorteSur[2][posIx+1]= movCarMix;
+                                    corredorNorteSur[1][posIx] = objSeccionEmpty;
+                                    System.out.println("cruzo carril 2");
+
+                                }
+
+                            break;
+
+                            case 2:
+
+                                if(corredorNorteSur[1][posIx+1].isEmpty() && corredorNorteSur[1][posIx+2].isEmpty() && corredorNorteSur[2][posIx].isEmpty()
+                                    && corredorNorteSur[0][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorNorteSur[1][posIx+1] = movCarMix;
+                                    corredorNorteSur[1][posIx+2] = movCarMix;
+
+                                    corredorNorteSur[1][posIx-1] = objSeccionEmpty;
+                                    corredorNorteSur[1][posIx] = objSeccionEmpty; 
+                                    System.out.println("adelanto carril 1");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorNorteSur[1][posIx+1].isEmpty() && corredorNorteSur[1][posIx+2].isEmpty() && !corredorNorteSur[2][posIx].isEmpty() 
+                                        && corredorNorteSur[0][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorNorteSur[1][posIx+1] = movCarMix;
+                                    corredorNorteSur[1][posIx+2] = movCarMix;
+
+                                    corredorNorteSur[1][posIx] = objSeccionEmpty;
+                                    corredorNorteSur[1][posIx-1] = objSeccionEmpty; 
+
+                                //cruzar    
+                                }else if(corredorNorteSur[2][posIx+1].isEmpty() && corredorNorteSur[2][posIx+2].isEmpty() && !corredorNorteSur[1][posIx+1].isEmpty() 
+                                        && corredorNorteSur[0][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorNorteSur[2][posIx+1]= movCarMix;
+                                    corredorNorteSur[2][posIx+2]= movCarMix;
+
+                                    corredorNorteSur[1][posIx] = objSeccionEmpty;
+                                    corredorNorteSur[1][posIx-1] = objSeccionEmpty;
+
+                                }                            
+                            break;
+
+                            case 3:
+
+
+                                if(corredorNorteSur[1][posIx+1].isEmpty() && corredorNorteSur[1][posIx+2].isEmpty() && corredorNorteSur[1][posIx+3].isEmpty() &&
+                                  corredorNorteSur[2][posIx].isEmpty()  && corredorNorteSur[0][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorNorteSur[1][posIx+1] = movCarMix;
+                                    corredorNorteSur[1][posIx+2] = movCarMix;
+                                    corredorNorteSur[1][posIx+3] = movCarMix;
+
+                                    corredorNorteSur[1][posIx] = objSeccionEmpty; 
+                                    corredorNorteSur[1][posIx-1] = objSeccionEmpty; 
+                                    corredorNorteSur[1][posIx-2] = objSeccionEmpty; 
+                                    System.out.println("adelanto");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorNorteSur[1][posIx+1].isEmpty() && corredorNorteSur[1][posIx+2].isEmpty() && corredorNorteSur[1][posIx+3].isEmpty()  
+                                        && corredorNorteSur[0][posIx+1].getTipoSeccion() == -2 && !corredorNorteSur[2][posIx].isEmpty()){
+
+                                    corredorNorteSur[1][posIx+1] = movCarMix;
+                                    corredorNorteSur[1][posIx+2] = movCarMix;
+                                    corredorNorteSur[1][posIx+3] = movCarMix;
+
+                                    corredorNorteSur[1][posIx] = objSeccionEmpty;
+                                    corredorNorteSur[1][posIx-1] = objSeccionEmpty;
+                                    corredorNorteSur[1][posIx-2] = objSeccionEmpty;
+
+                                //cruzar    
+                                }else if(corredorNorteSur[2][posIx+1].isEmpty() && corredorNorteSur[2][posIx+2].isEmpty() && corredorNorteSur[2][posIx+3].isEmpty() && !corredorNorteSur[1][posIx+1].isEmpty() 
+                                        && corredorNorteSur[0][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorNorteSur[2][posIx+1]= movCarMix;
+                                    corredorNorteSur[2][posIx+2]= movCarMix;
+                                    corredorNorteSur[2][posIx+3]= movCarMix;
+
+                                    corredorNorteSur[1][posIx] = objSeccionEmpty;
+                                    corredorNorteSur[1][posIx-1] = objSeccionEmpty;
+                                    corredorNorteSur[1][posIx-2] = objSeccionEmpty;
+
+                                }
+                            break;    
+
                         }
+
+                    }
+
+                    if(!corredorNorteSur[2][posIx].isEmpty()){
+                        int tipoVehCurr2 = corredorNorteSur[2][posIx].getObjVehiculo().getIdTipoVehiculo();
+
+                        Seccion movCarMix = new Seccion(true, objVehiculo, 2);
+
+                        switch(tipoVehCurr2){
+
+                            case 1:
+
+                                if(corredorNorteSur[2][posIx+1].isEmpty() && corredorNorteSur[1][posIx].isEmpty()
+                                    && corredorNorteSur[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorNorteSur[2][posIx+1] = movCarMix;
+                                    corredorNorteSur[2][posIx] = objSeccionEmpty; 
+                                    System.out.println("adelanto");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorNorteSur[2][posIx+1].isEmpty() && !corredorNorteSur[1][posIx].isEmpty() 
+                                        && corredorNorteSur[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorNorteSur[2][posIx+1] = movCarMix;
+                                    corredorNorteSur[2][posIx] = objSeccionEmpty; 
+
+                                //cruzar    
+                                }else if(corredorNorteSur[1][posIx+1].isEmpty() && !corredorNorteSur[2][posIx+1].isEmpty() 
+                                        && corredorNorteSur[3][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorNorteSur[1][posIx+1]= movCarMix;
+                                    corredorNorteSur[2][posIx] = objSeccionEmpty;
+
+                                }
+
+                            break;
+
+                            case 2:
+
+                                if(corredorNorteSur[2][posIx+1].isEmpty() && corredorNorteSur[2][posIx+2].isEmpty() && corredorNorteSur[1][posIx].isEmpty()
+                                    && corredorNorteSur[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorNorteSur[1][posIx+1] = movCarMix;
+                                    corredorNorteSur[1][posIx+2] = movCarMix;
+
+                                    corredorNorteSur[1][posIx-1] = objSeccionEmpty;
+                                    corredorNorteSur[1][posIx] = objSeccionEmpty; 
+                                    System.out.println("adelanto");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorNorteSur[2][posIx+1].isEmpty() && corredorNorteSur[2][posIx+2].isEmpty() && !corredorNorteSur[1][posIx].isEmpty() 
+                                        && corredorNorteSur[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorNorteSur[2][posIx+1] = movCarMix;
+                                    corredorNorteSur[2][posIx+2] = movCarMix;
+
+                                    corredorNorteSur[2][posIx] = objSeccionEmpty;
+                                    corredorNorteSur[2][posIx-1] = objSeccionEmpty; 
+
+                                //cruzar    
+                                }else if(corredorNorteSur[1][posIx+1].isEmpty() && corredorNorteSur[1][posIx+2].isEmpty() && !corredorNorteSur[2][posIx+1].isEmpty() 
+                                        && corredorNorteSur[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorNorteSur[1][posIx+1]= movCarMix;
+                                    corredorNorteSur[1][posIx+2]= movCarMix;
+
+                                    corredorNorteSur[2][posIx] = objSeccionEmpty;
+                                    corredorNorteSur[2][posIx-1] = objSeccionEmpty;
+
+                                }                            
+                            break;
+
+                            case 3:
+
+
+                                if(corredorNorteSur[2][posIx+1].isEmpty() && corredorNorteSur[2][posIx+2].isEmpty() && corredorNorteSur[2][posIx+3].isEmpty() &&
+                                  corredorNorteSur[1][posIx].isEmpty()  && corredorNorteSur[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorNorteSur[2][posIx+1] = movCarMix;
+                                    corredorNorteSur[2][posIx+2] = movCarMix;
+                                    corredorNorteSur[2][posIx+3] = movCarMix;
+
+                                    corredorNorteSur[2][posIx] = objSeccionEmpty; 
+                                    corredorNorteSur[2][posIx-1] = objSeccionEmpty; 
+                                    corredorNorteSur[2][posIx-2] = objSeccionEmpty; 
+                                    System.out.println("adelanto");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorNorteSur[2][posIx+1].isEmpty() && corredorNorteSur[2][posIx+2].isEmpty() && corredorNorteSur[2][posIx+3].isEmpty()  
+                                        && corredorNorteSur[0][posIx+1].getTipoSeccion() == -2 && !corredorNorteSur[2][posIx].isEmpty()){
+
+                                    corredorNorteSur[2][posIx+1] = movCarMix;
+                                    corredorNorteSur[2][posIx+2] = movCarMix;
+                                    corredorNorteSur[2][posIx+3] = movCarMix;
+
+                                    corredorNorteSur[2][posIx] = objSeccionEmpty;
+                                    corredorNorteSur[2][posIx-1] = objSeccionEmpty;
+                                    corredorNorteSur[2][posIx-1] = objSeccionEmpty;
+
+                                //cruzar    
+                                }else if(corredorNorteSur[1][posIx+1].isEmpty() && corredorNorteSur[1][posIx+2].isEmpty() && corredorNorteSur[1][posIx+3].isEmpty() && !corredorNorteSur[2][posIx+1].isEmpty() 
+                                        && corredorNorteSur[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorNorteSur[1][posIx+1]= movCarMix;
+                                    corredorNorteSur[1][posIx+2]= movCarMix;
+                                    corredorNorteSur[1][posIx+3]= movCarMix;
+
+                                    corredorNorteSur[2][posIx] = objSeccionEmpty;
+                                    corredorNorteSur[2][posIx-1] = objSeccionEmpty;
+                                    corredorNorteSur[2][posIx-2] = objSeccionEmpty;
+
+                                }
+                            break;
+
+                        }
+                    }    
+
+                    if(!corredorNorteSur[3][posIx].isEmpty() && corredorNorteSur[3][posIx+1].isEmpty()){
+
+                         Seccion movSoloCar = new Seccion(true, objVehiculo, 3);
+
+                        //movemos el vehiculo
+                        corredorNorteSur[3][posIx+1] = movSoloCar;
+                        corredorSurNorte[3][posIx] = objSeccionCarro;
+
+                    }
+
+                    if(!corredorNorteSur[4][posIx].isEmpty() && corredorNorteSur[4][posIx+1].isEmpty() && corredorNorteSur[4][posIx+2].isEmpty() 
+                            && corredorNorteSur[4][posIx+3].isEmpty() && corredorNorteSur[4][posIx+4].isEmpty()){
+
+                        Seccion movSoloMasivo = new Seccion(true, objVehiculo, 4);
+
+
+                        corredorNorteSur[4][posIx+1] = movSoloMasivo;
+                        corredorNorteSur[4][posIx+2] = movSoloMasivo;
+                        corredorNorteSur[4][posIx+3] = movSoloMasivo;
+                        corredorNorteSur[4][posIx+4] = movSoloMasivo;
+
+                        corredorNorteSur[4][posIx]   = objSeccionMasivo;      
+                        corredorNorteSur[4][posIx-1] = objSeccionMasivo;
+                        corredorNorteSur[4][posIx-2] = objSeccionMasivo;
+                        corredorNorteSur[4][posIx-3] = objSeccionMasivo;
+
+
+                    }
+
+                }
+
+//                }else{
+
+//                    switch(tipoVehiculo){
+//
+//                        case 1:
+//
+//                            if(corredorNorteSur[1][0].isEmpty()){             
+//
+//                                corredorNorteSur[1][0] = seccionMixta;
+//
+//                            }else if(corredorNorteSur[2][0].isEmpty()){
+//
+//                                corredorNorteSur[2][0] = seccionMixta;
+//
+//                            }
+//
+//                        break;
+//
+//                        case 2:
+//
+//                            if(corredorNorteSur[1][0].isEmpty() && corredorNorteSur[1][1].isEmpty()){
+//
+//                                corredorNorteSur[1][0] = seccionMixta;
+//                                corredorNorteSur[1][1]= seccionMixta;
+//
+//                            }else if(corredorNorteSur[2][0].isEmpty() && corredorNorteSur[2][1].isEmpty()){
+//
+//                                corredorNorteSur[2][0]= seccionMixta;
+//                                corredorNorteSur[2][1]= seccionMixta;
+//
+//                            }
+//
+//                        break;
+//
+//                        case 3:
+//                            if(corredorNorteSur[1][0].isEmpty() && corredorNorteSur[1][1].isEmpty() && corredorNorteSur[1][2].isEmpty()){
+//
+//                                corredorNorteSur[1][0]= seccionMixta;
+//                                corredorNorteSur[1][1]= seccionMixta;
+//                                corredorNorteSur[1][2]= seccionMixta;
+//
+//
+//                            }else if(corredorNorteSur[2][0].isEmpty() && corredorNorteSur[2][1].isEmpty() && corredorNorteSur[2][2].isEmpty()){
+//
+//                                corredorNorteSur[2][0]= seccionMixta;
+//                                corredorNorteSur[2][1]= seccionMixta;
+//                                corredorNorteSur[2][2]= seccionMixta;
+//
+//                            }
+//
+//                        break;
+//
+//                        case 4:
+//
+//                            if(corredorNorteSur[3][0].isEmpty() &&  corredorNorteSur[3][1].isEmpty() && corredorNorteSur[3][2].isEmpty() 
+//                                    && corredorNorteSur[3][3].isEmpty() ){
+//
+//                               corredorNorteSur[3][0]= seccionMixta;
+//                               corredorNorteSur[3][1]= seccionMixta;
+//                               corredorNorteSur[3][2]= seccionMixta;
+//                               corredorNorteSur[3][3]= seccionMixta;
+//
+//                            }
+//
+//                        break;    
+//                    }
+
+                //inicializamos los vehiculos
+                switch(tipoVehiculo){
+
+                    case 1:
+
+
+                        if(corredorNorteSur[1][0].isEmpty()){
+
+                            corredorNorteSur[1][0]= seccionMixta;
+
+
+                        }else if(corredorNorteSur[2][0].isEmpty()){
+
+                            corredorNorteSur[2][0] = seccionMixta;
+
+
+                        }else if(corredorNorteSur[3][0].isEmpty()){
+
+                            corredorNorteSur[3][0] = seccionCarro;
+
+
+                        }
+                    break;
+
+                    case 2:
+                        if(corredorNorteSur[1][0].isEmpty() && corredorNorteSur[1][1].isEmpty()){
+
+                            corredorNorteSur[1][0] = seccionMixta;
+                            corredorNorteSur[1][1] = seccionMixta;
+
+
+                        }else if(corredorNorteSur[2][0].isEmpty()){
+
+                            corredorNorteSur[2][0] = seccionMixta;
+                            corredorNorteSur[2][1] = seccionMixta;
+
+                        }
+                    break;
+
+                    case 3:
+                        if(corredorNorteSur[1][0].isEmpty() && corredorNorteSur[1][1].isEmpty() && corredorNorteSur[1][2].isEmpty()){
+
+                            corredorNorteSur[1][0] = seccionMixta;
+                            corredorNorteSur[1][1] = seccionMixta;
+                            corredorNorteSur[1][2] = seccionMixta;
+
+
+                        }else if(corredorNorteSur[2][0].isEmpty() && corredorNorteSur[2][1].isEmpty() && corredorNorteSur[2][2].isEmpty()){
+
+                            corredorNorteSur[2][0] = seccionMixta;
+                            corredorNorteSur[2][1] = seccionMixta;
+                            corredorNorteSur[2][2] = seccionMixta;
+
+
+                        }
+
+                    break;
+
+                    case 4:
+
+                        if(corredorNorteSur[4][0].isEmpty() &&  corredorNorteSur[4][1].isEmpty() && corredorNorteSur[4][2].isEmpty() 
+                                && corredorNorteSur[4][3].isEmpty() ){
+
+
+                           corredorNorteSur[4][0] = seccionMasivo;
+                           corredorNorteSur[4][1] = seccionMasivo;
+                           corredorNorteSur[4][2] = seccionMasivo;
+                           corredorNorteSur[4][3] = seccionMasivo;
+
+                        }
+
+                    break;    
+
+                }//cierre switch
+                
+                if(!corredorSurNorte[3][178].isEmpty()){
+                    
+                    corredorSurNorte[3][178] = objSeccionMasivo;
+                    corredorSurNorte[3][177] = objSeccionMasivo;
+                    corredorSurNorte[3][176] = objSeccionMasivo;
+                    corredorSurNorte[3][175] = objSeccionMasivo;
+
+                }
+
+                if(!corredorSurNorte[2][178].isEmpty()){
+                    corredorSurNorte[2][178] = objSeccionCarro;
+
+                }
+
+                if(!corredorSurNorte[1][178].isEmpty()){
+                    
+                    int tipo = corredorSurNorte[3][178].getObjVehiculo().getIdTipoVehiculo();
+                    
+                    switch(tipo){
+                        
+                        case 1:
+                            corredorSurNorte[1][178] = objSeccionEmpty;
+                        break;
+                            
+                        case 2:
+                            
+                            corredorSurNorte[1][178] = objSeccionEmpty;
+                            corredorSurNorte[1][177] = objSeccionEmpty;
+                            
+                        break;
+                            
+                        case 3:
+                            
+                            corredorSurNorte[1][178] = objSeccionEmpty;
+                            corredorSurNorte[1][177] = objSeccionEmpty;
+                            corredorSurNorte[1][176] = objSeccionEmpty;
+                        break;    
                     }
                 }
-            }            
-        }
-        
-        //comienzo de los carriles
-        switch(tipoVehiculo){
-                
-            case 4:
-                if(corredorNorteSur[4][0].getEspacio() == 0 && corredorNorteSur[4][1].getEspacio() == 0 
-                        && corredorNorteSur[4][2].getEspacio() == 0 && corredorNorteSur[4][3].getEspacio() == 0){
-                    
-                    corredorNorteSur[4][0] = objVehiculo;
-                    corredorNorteSur[4][1] = objVehiculo;
-                    corredorNorteSur[4][2] = objVehiculo;
-                    corredorNorteSur[4][3] = objVehiculo;
-                    System.out.println("comiezo carril 4");
-                    //recorrer = false;
-                }
-                
-            break;    
 
-            case 3:
-                
-                if(corredorNorteSur[2][0].getEspacio() == 0 && corredorNorteSur[2][1].getEspacio() == 0 && corredorNorteSur[2][2].getEspacio() == 0){
-                   
-                   corredorNorteSur[2][0] = objVehiculo;
-                   corredorNorteSur[2][1] = objVehiculo;
-                   corredorNorteSur[2][2] = objVehiculo;
-                   System.out.println("comiezo carril 2");
-                   //recorrer = false;
-                   
-                }else if(corredorNorteSur[1][0].getEspacio() == 0 && corredorNorteSur[1][1].getEspacio() == 0 && corredorNorteSur[1][2].getEspacio() == 0){
+                if(!corredorSurNorte[0][178].isEmpty()){
                     
-                    corredorNorteSur[1][0] = objVehiculo;
-                    corredorNorteSur[1][1] = objVehiculo;
-                    corredorNorteSur[1][2] = objVehiculo;
-                    System.out.println("comiezo carril 1");
-                    //recorrer = false;
+                    int tipo = corredorSurNorte[0][178].getObjVehiculo().getIdTipoVehiculo();
+                    
+                    switch(tipo){
+                        
+                        case 1:
+                            corredorSurNorte[0][178] = objSeccionEmpty;
+                        break;
+                            
+                        case 2:
+                            
+                            corredorSurNorte[0][178] = objSeccionEmpty;
+                            corredorSurNorte[0][177] = objSeccionEmpty;
+                            
+                        break;
+                            
+                        case 3:
+                            
+                            corredorSurNorte[0][178] = objSeccionEmpty;
+                            corredorSurNorte[0][177] = objSeccionEmpty;
+                            corredorSurNorte[0][176] = objSeccionEmpty;
+                        break;    
+                    }
+                    
+                    
                 }
-                
-            break;
 
-            case 2:
-                if(corredorNorteSur[2][0].getEspacio() == 0 && corredorNorteSur[2][1].getEspacio() == 0){
-                   
-                   corredorNorteSur[2][0] = objVehiculo;
-                   corredorNorteSur[2][1] = objVehiculo;
-                   System.out.println("comiezo carril 2");
-                   //recorrer = false;
-                   
-                }else if(corredorNorteSur[1][0].getEspacio() == 0 && corredorNorteSur[1][1].getEspacio() == 0){
-                    
-                    corredorNorteSur[1][0] = objVehiculo;
-                    corredorNorteSur[1][1] = objVehiculo;
-                    System.out.println("comiezo carril 1");
-                    //recorrer = false;
-                }
-                
-            break;
-            
-            //para carros    
-            case 1:
-                
-                //para el unico carril
-                if(corredorNorteSur[3][0].getEspacio() == 0){
-                   
-                    corredorNorteSur[3][0] = objVehiculo;
-                    System.out.println("comiezo carril 3");
-                    //recorrer = false;
-                
-                //para el carril 1    
-                }else if(corredorNorteSur[2][0].getEspacio() == 0){
-                    
-                    corredorNorteSur[2][0] = objVehiculo;
-                    System.out.println("comiezo carril 2");
-                    //recorrer = false;
-                
-                //para el carril 2    
-                }else if(corredorNorteSur[1][0].getEspacio() == 0){
-                    
-                    corredorNorteSur[1][0] = objVehiculo;
-                    System.out.println("comiezo carril 1");
-                    //recorrer = false;
-                }
-                
-            break;     
+                //IMPLEMENTACION DE REGLAS para corredor sur norte  
 
-        }// cierre de switch
-        
-        //revisar la ultima posicion
-        if(corredorNorteSur[4][178].getEspacio() > 0){
-            
-            corredorNorteSur[4][178] = objVehiculo;
-            System.out.println("salio del corredor");
-            JOptionPane.showMessageDialog(null, "salio 4");
-        }        
+                for(int posIx = 179; posIx >= 0; posIx--){
 
-        if(corredorNorteSur[3][178].getEspacio() > 0){
-            
-            corredorNorteSur[3][178] = objVehiculo;
-            System.out.println("salio del corredor 3");
-            
+                    if(!corredorSurNorte[0][posIx].isEmpty()){
+                        int tipoVehCurr1 = corredorSurNorte[0][posIx].getObjVehiculo().getIdTipoVehiculo();
+
+                        Seccion movCarMix = new Seccion(true, objVehiculo, 2);
+                        //Seccion movSoloCar = new Seccion(true, objVehiculo, 3);
+                        //Seccion movSoloMasivo = new Seccion(true, objVehiculo, 4);
+
+                        switch(tipoVehCurr1){
+
+                            case 1:
+
+                                if(corredorSurNorte[0][posIx+1].isEmpty() && corredorSurNorte[1][posIx].isEmpty()
+                                    && corredorSurNorte[2][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorSurNorte[0][posIx+1] = movCarMix;
+                                    corredorSurNorte[0][posIx] = objSeccionEmpty; 
+                                    System.out.println("adelanto");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorSurNorte[0][posIx+1].isEmpty() && !corredorSurNorte[1][posIx].isEmpty() 
+                                        && corredorSurNorte[2][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorSurNorte[0][posIx+1] = movCarMix;
+                                    corredorSurNorte[0][posIx] = objSeccionEmpty; 
+
+                                //cruzar    
+                                }else if(corredorSurNorte[1][posIx+1].isEmpty() && !corredorSurNorte[0][posIx+1].isEmpty() 
+                                        && corredorSurNorte[2][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorSurNorte[1][posIx+1]= movCarMix;
+                                    corredorSurNorte[0][posIx] = objSeccionEmpty;
+
+                                }
+
+                            break;
+
+                            case 2:
+
+                                if(corredorSurNorte[0][posIx+1].isEmpty() && corredorSurNorte[0][posIx+2].isEmpty() && corredorSurNorte[1][posIx].isEmpty()
+                                    && corredorSurNorte[2][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorSurNorte[0][posIx+1] = movCarMix;
+                                    corredorSurNorte[0][posIx+2] = movCarMix;
+
+                                    corredorSurNorte[0][posIx-1] = objSeccionEmpty;
+                                    corredorSurNorte[0][posIx] = objSeccionEmpty; 
+                                    System.out.println("adelanto");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorSurNorte[0][posIx+1].isEmpty() && corredorSurNorte[0][posIx+2].isEmpty() && !corredorSurNorte[1][posIx].isEmpty() 
+                                        && corredorSurNorte[2][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorSurNorte[0][posIx+1] = movCarMix;
+                                    corredorSurNorte[0][posIx+2] = movCarMix;
+
+                                    corredorSurNorte[1][posIx] = objSeccionEmpty;
+                                    corredorSurNorte[1][posIx-1] = objSeccionEmpty; 
+
+                                //cruzar    
+                                }else if(corredorSurNorte[0][posIx+1].isEmpty() && corredorSurNorte[0][posIx+2].isEmpty() && !corredorSurNorte[1][posIx].isEmpty() 
+                                        && corredorSurNorte[2][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorSurNorte[1][posIx+1]= movCarMix;
+                                    corredorSurNorte[1][posIx+2]= movCarMix;
+
+                                    corredorSurNorte[0][posIx] = objSeccionEmpty;
+                                    corredorSurNorte[0][posIx-1] = objSeccionEmpty;
+
+                                }                            
+                            break;
+
+                            case 3:
+
+
+                                if(corredorSurNorte[0][posIx+1].isEmpty() && corredorSurNorte[0][posIx+2].isEmpty() && corredorSurNorte[0][posIx+3].isEmpty() &&
+                                  corredorSurNorte[1][posIx].isEmpty()  && corredorSurNorte[2][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorSurNorte[1][posIx+1] = movCarMix;
+                                    corredorSurNorte[1][posIx+2] = movCarMix;
+                                    corredorSurNorte[1][posIx+3] = movCarMix;
+
+                                    corredorSurNorte[1][posIx] = objSeccionEmpty; 
+                                    corredorSurNorte[1][posIx-1] = objSeccionEmpty; 
+                                    corredorSurNorte[1][posIx-2] = objSeccionEmpty; 
+                                    System.out.println("adelanto");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorSurNorte[1][posIx+1].isEmpty() && corredorSurNorte[1][posIx+2].isEmpty() && corredorSurNorte[1][posIx+3].isEmpty()  
+                                        && corredorSurNorte[0][posIx+1].getTipoSeccion() == -2 && !corredorSurNorte[2][posIx].isEmpty()){
+
+                                    corredorSurNorte[1][posIx+1] = movCarMix;
+                                    corredorSurNorte[1][posIx+2] = movCarMix;
+                                    corredorSurNorte[1][posIx+3] = movCarMix;
+
+                                    corredorSurNorte[1][posIx] = objSeccionEmpty;
+                                    corredorSurNorte[1][posIx-1] = objSeccionEmpty;
+                                    corredorSurNorte[1][posIx-1] = objSeccionEmpty;
+
+                                //cruzar    
+                                }else if(corredorSurNorte[2][posIx+1].isEmpty() && corredorSurNorte[2][posIx+2].isEmpty() && corredorSurNorte[2][posIx+3].isEmpty() && !corredorSurNorte[1][posIx+1].isEmpty() 
+                                        && corredorSurNorte[0][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorSurNorte[2][posIx+1]= movCarMix;
+                                    corredorSurNorte[2][posIx+2]= movCarMix;
+                                    corredorSurNorte[2][posIx+3]= movCarMix;
+
+                                    corredorSurNorte[1][posIx] = objSeccionEmpty;
+                                    corredorSurNorte[1][posIx-1] = objSeccionEmpty;
+                                    corredorSurNorte[1][posIx-2] = objSeccionEmpty;
+
+                                }
+
+                            break;    
+
+                        }
+
+                    }
+
+                    if(!corredorSurNorte[1][posIx].isEmpty()){
+                        int tipoVehCurr2 = corredorSurNorte[2][posIx].getObjVehiculo().getIdTipoVehiculo();
+
+                        Seccion movCarMix = new Seccion(true, objVehiculo, 2);
+                        
+
+                        switch(tipoVehCurr2){
+
+                            case 1:
+
+                                if(corredorSurNorte[1][posIx+1].isEmpty() && corredorSurNorte[1][posIx].isEmpty()
+                                    && corredorSurNorte[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorSurNorte[2][posIx+1] = movCarMix;
+                                    corredorSurNorte[2][posIx] = objSeccionEmpty; 
+                                    System.out.println("adelanto");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorSurNorte[2][posIx+1].isEmpty() && !corredorSurNorte[1][posIx].isEmpty() 
+                                        && corredorSurNorte[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorSurNorte[2][posIx+1] = movCarMix;
+                                    corredorSurNorte[2][posIx] = objSeccionEmpty; 
+
+                                //cruzar    
+                                }else if(corredorSurNorte[1][posIx+1].isEmpty() && !corredorSurNorte[2][posIx+1].isEmpty() 
+                                        && corredorSurNorte[3][posIx+1].getTipoSeccion() == -2){
+
+                                    corredorSurNorte[1][posIx+1]= movCarMix;
+                                    corredorSurNorte[2][posIx] = objSeccionEmpty;
+
+                                }
+
+                            break;
+
+                            case 2:
+
+                                if(corredorSurNorte[2][posIx+1].isEmpty() && corredorSurNorte[2][posIx+2].isEmpty() && corredorSurNorte[1][posIx].isEmpty()
+                                    && corredorSurNorte[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorSurNorte[1][posIx+1] = movCarMix;
+                                    corredorSurNorte[1][posIx+2] = movCarMix;
+
+                                    corredorSurNorte[1][posIx-1] = objSeccionEmpty;
+                                    corredorSurNorte[1][posIx] = objSeccionEmpty; 
+                                    System.out.println("adelanto");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorSurNorte[2][posIx+1].isEmpty() && corredorSurNorte[2][posIx+2].isEmpty() && !corredorSurNorte[1][posIx].isEmpty() 
+                                        && corredorSurNorte[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorSurNorte[2][posIx+1] = movCarMix;
+                                    corredorSurNorte[2][posIx+2] = movCarMix;
+
+                                    corredorSurNorte[2][posIx] = objSeccionEmpty;
+                                    corredorSurNorte[2][posIx] = objSeccionEmpty; 
+
+                                //cruzar    
+                                }else if(corredorSurNorte[1][posIx+1].isEmpty() && corredorSurNorte[1][posIx+2].isEmpty() && !corredorSurNorte[2][posIx+1].isEmpty() 
+                                        && corredorSurNorte[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorSurNorte[1][posIx+1]= movCarMix;
+                                    corredorSurNorte[1][posIx+2]= movCarMix;
+
+                                    corredorSurNorte[2][posIx] = objSeccionEmpty;
+                                    corredorSurNorte[2][posIx-1] = objSeccionEmpty;
+
+                                }                            
+                            break;
+
+                            case 3:
+
+
+                                if(corredorSurNorte[2][posIx+1].isEmpty() && corredorSurNorte[2][posIx+2].isEmpty() && corredorSurNorte[2][posIx+3].isEmpty() &&
+                                  corredorSurNorte[1][posIx].isEmpty()  && corredorSurNorte[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorSurNorte[2][posIx+1] = movCarMix;
+                                    corredorSurNorte[2][posIx+2] = movCarMix;
+                                    corredorSurNorte[2][posIx+3] = movCarMix;
+
+                                    corredorSurNorte[2][posIx] = objSeccionEmpty; 
+                                    corredorSurNorte[2][posIx-1] = objSeccionEmpty; 
+                                    corredorSurNorte[2][posIx-2] = objSeccionEmpty; 
+                                    System.out.println("adelanto");
+
+                                }
+
+                                //adelantar al frente
+                                else if(corredorSurNorte[2][posIx+1].isEmpty() && corredorSurNorte[2][posIx+2].isEmpty() && corredorSurNorte[2][posIx+3].isEmpty()  
+                                        && corredorSurNorte[0][posIx+1].getTipoSeccion() == -2 && !corredorSurNorte[2][posIx].isEmpty()){
+
+                                    corredorSurNorte[2][posIx+1] = movCarMix;
+                                    corredorSurNorte[2][posIx+2] = movCarMix;
+                                    corredorSurNorte[2][posIx+3] = movCarMix;
+
+                                    corredorSurNorte[2][posIx] = objSeccionEmpty;
+                                    corredorSurNorte[2][posIx-1] = objSeccionEmpty;
+                                    corredorSurNorte[2][posIx-1] = objSeccionEmpty;
+
+                                //cruzar    
+                                }else if(corredorSurNorte[1][posIx+1].isEmpty() && corredorSurNorte[1][posIx+2].isEmpty() && corredorSurNorte[1][posIx+3].isEmpty() && !corredorSurNorte[2][posIx+1].isEmpty() 
+                                        && corredorSurNorte[3][posIx+1].getTipoSeccion() == 3){
+
+                                    corredorSurNorte[1][posIx+1]= movCarMix;
+                                    corredorSurNorte[1][posIx+2]= movCarMix;
+                                    corredorSurNorte[1][posIx+3]= movCarMix;
+
+                                    corredorSurNorte[0][posIx] = objSeccionEmpty;
+                                    corredorSurNorte[0][posIx-1] = objSeccionEmpty;
+                                    corredorSurNorte[0][posIx-2] = objSeccionEmpty;
+
+                                }else if(corredorSurNorte[0][posIx+1].isEmpty() && corredorSurNorte[0][posIx+2].isEmpty() && corredorSurNorte[0][posIx+3].isEmpty() && !corredorSurNorte[1][posIx+1].isEmpty() 
+                                        && corredorSurNorte[2][posIx+1].getTipoSeccion() == -2){
+                                    
+                                    corredorSurNorte[0][posIx+1]= movCarMix;
+                                    corredorSurNorte[0][posIx+2]= movCarMix;
+                                    corredorSurNorte[0][posIx+3]= movCarMix;
+
+                                    corredorSurNorte[1][posIx] = objSeccionEmpty;
+                                    corredorSurNorte[1][posIx-1] = objSeccionEmpty;
+                                    corredorSurNorte[1][posIx-2] = objSeccionEmpty;
+                                }
+
+                            break;
+
+                        }
+                    }
+                    
+                    if(!corredorSurNorte[2][posIx].isEmpty()){
+                        
+                        Seccion movCar = new Seccion(true, objVehiculo, 3);
+                        corredorSurNorte[2][posIx+1] = movCar;
+                        corredorSurNorte[2][posIx] = objSeccionCarro;        
+                        
+                    }
+                    
+                    if(!corredorSurNorte[3][posIx].isEmpty()){
+
+                        Seccion movMasivo = new Seccion(true, objVehiculo, 4);
+                        
+                        corredorSurNorte[3][posIx+1] = movMasivo;
+                        corredorSurNorte[3][posIx+2] = movMasivo;
+                        corredorSurNorte[3][posIx+3] = movMasivo;
+                        corredorSurNorte[3][posIx+4] = movMasivo;
+                                
+                        corredorSurNorte[3][posIx] = objSeccionMasivo;
+                        corredorSurNorte[3][posIx-1] = objSeccionMasivo;
+                        corredorSurNorte[3][posIx-2] = objSeccionMasivo;
+                        corredorSurNorte[3][posIx-3] = objSeccionMasivo;                               
+                    }
+                }//close for
+                
         }
-        
-        if(corredorNorteSur[2][178].getEspacio() >0 ){
-            
-            corredorNorteSur[2][178] = objVehiculo;
-            System.out.println("salio del corredor");
-            JOptionPane.showMessageDialog(null, "salio 2");    
-        }
-        
-        if(corredorNorteSur[1][178].getEspacio() > 0){
-            
-            corredorNorteSur[1][178] = objVehiculo;
-            System.out.println("salio del corredor");
-            JOptionPane.showMessageDialog(null, "salio 1");    
-        }
-        
-         
-    }//cierre del metodo
-    
-    /*SUB-FUNCIONES PARA UTILIZAR EL AMBIENTE*/
-    
+    }
+
 }
