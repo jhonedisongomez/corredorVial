@@ -5,7 +5,6 @@
  */
 package Interfaz;
 
-import java.util.ArrayList;
 import Simulacion.Controlador;
 
 /**
@@ -166,7 +165,8 @@ public class GuiCorredor extends javax.swing.JFrame {
 
     private void jBsimularActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBsimularActionPerformed
         int[] horario = {0, 0, 0};
-        ArrayList vehiculos = new ArrayList();
+        //ArrayList vehiculos = new ArrayList();
+        int [] vehiculos = {0,0,0,0};
         int horarioSeleccionado = jCBhorario.getSelectedIndex();
         
         
@@ -189,18 +189,27 @@ public class GuiCorredor extends javax.swing.JFrame {
         
         // seteo de vehiculos
         if (jCBtodos.isSelected()) {
-            for (int i = 1; i <= 4; i++)
-                vehiculos.add(i);
-        }
-        else {
+            for (int i = 0; i <= 3; i++)
+                //vehiculos.add(i);
+                vehiculos[i]= i +1; 
+        }else {
+            
             if (jCBcarro.isSelected())
-                vehiculos.add(1);
+                //vehiculos.add(1);
+                vehiculos[0] = 1;
+                
             if (jCBbuseta.isSelected())
-                vehiculos.add(2);
+                //vehiculos.add(2);
+                vehiculos[1] = 2;
+                //index++;
             if (jCBcamion.isSelected())
-                vehiculos.add(3);
+                //vehiculos.add(3);
+                vehiculos[2] = 3;
+                //index++;
             if (jCBmio.isSelected())
-                vehiculos.add(4);
+                //vehiculos.add(4);
+                vehiculos[3] = 4;
+                //index++;
         }
         // llamada a controlador principal
         Controlador.main(horario, vehiculos);
@@ -209,12 +218,14 @@ public class GuiCorredor extends javax.swing.JFrame {
     private void jCBtodosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jCBtodosMouseClicked
         // TODO add your handling code here:
         if (jCBtodos.isSelected()) {
+            
             jCBcarro.setSelected(true);
             jCBbuseta.setSelected(true);
             jCBcamion.setSelected(true);
             jCBmio.setSelected(true);
-        }
-        else {
+        
+        }else {
+            
             jCBcarro.setSelected(false);
             jCBbuseta.setSelected(false);
             jCBcamion.setSelected(false);

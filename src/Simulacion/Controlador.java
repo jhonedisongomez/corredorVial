@@ -15,7 +15,6 @@ import Modelo.Camion;
 import Modelo.Carro;
 import Modelo.Masivo;
 import Modelo.Vehiculo;
-import java.util.ArrayList;
 
 /**
  *
@@ -25,7 +24,10 @@ public class Controlador {
     
     static int carros=0, busetas=0, camiones=0, masivos=0;
     
-    public static void main(int[] horarioGui, ArrayList vehiculosSimulacion){
+    //contadores para los carro del corredor norte sur
+    static int carroNS=0, busetaNS=0, camionNS=0, masivoNS=0;
+    
+    public static void main(int[] horarioGui, int[] vehiculosSimulacion){
         // configuracion de la simulacion
         Horario hr = new Horario(horarioGui);
         int[] tiemposSimulacion = Horario.getTiempoSimulacion();
@@ -41,6 +43,7 @@ public class Controlador {
         // simulacion de los tres horarios, si el tiempo es cero, no devuelve nada
         for (int i = 0; i < tiemposSimulacion.length; i++) {
             System.out.println("Simulacion horario " + (i + 1));
+            carroNS=0; busetaNS=0; camionNS=0; masivoNS=0;
             simular(i, tiemposSimulacion[i], vehiculosSimulacion, a, probabilidadesSN, probabilidadesNS);
         }
         
@@ -51,7 +54,7 @@ public class Controlador {
         
     }
     
-    private static void simular(int horario, int tiempo, ArrayList tipoVehiculo, Ambiente a, double[][] probabilidadesSN, double[][] probabilidadesNS) {
+    private static void simular(int horario, int tiempo, int[] tipoVehiculo, Ambiente a, double[][] probabilidadesSN, double[][] probabilidadesNS) {
         /**
         SIMULACION
         */
@@ -59,100 +62,82 @@ public class Controlador {
         //guardar objetos en vectores para distinguir los carros de los corredores
         //Vector<Carro> vehiculoNSVector = new Vector<Carro>();
         //Vector<Vehiculo> vehiculoSNVector = new Vector<Vehiculo>();
-        
-        int [][] datosNS = new int[tiempo][1];
+        //carroNS=0; busetaNS=0; camionNS=0; masivoNS=0;
+        //int [][] datosNS = new int[tiempo][1];
         
         //corredor norte sur
-        int carroNS=0, busetaNS=0, camionNS=0, masivoNS=0;
-        int carroSN=0, busetaSN=0, camionSN=0, masivoSN=0;
+        
+        //int carroSN=0, busetaSN=0, camionSN=0, masivoSN=0;
         Vehiculo vehiculoNS;
-        Vehiculo vehiculoSN;
+        //Vehiculo vehiculoSN;
         //int reloj = 0;
         
             
         for(int reloj = 0; reloj < tiempo; reloj++) {
-        //System.out.println(reloj);
-        // corredor SN
-        // generar aleatoriamente un vehiculo
-        vehiculoSN = generarVehiculo(horario, probabilidadesSN);
-
-        if(vehiculoSN != null){
-            switch(vehiculoSN.getIdTipoVehiculo()){
-
-                case 1:
-                    carroSN++;
-                break;    
-
-                case 2:
-                    busetaSN++;
-                break;
-
-                case 3:
-                    camionSN++;
-                break;
-
-                case 4:
-                    masivoSN++;
-                break;    
-
-            }//cierre switch    
-
-            //datosNS [reloj][x] = vehiculoSN.getIdTipoVehiculo();
-            Ambiente.actualizarAmbiente(vehiculoSN,reloj,"norteSur");
-        }//cierre condicion null
-
-        // ubicarlo segun su tipoVehiculo en un carril
-        // actualizar ambiente (semaforos, colas) -> aplicar reglas
-        
-        
-        // corredor NS
-        // generar aleatoriamente un vehiculo
-            vehiculoNS = generarVehiculo(horario, probabilidadesNS);
-            //vehiculoSNVector.add(reloj, vehiculoNS
+            
+            vehiculoNS = generarVehiculo(horario, probabilidadesSN);
+            int index = 0;   
+            //Object test = null;
+            
             if(vehiculoNS != null){
 
                 switch(vehiculoNS.getIdTipoVehiculo()){
 
                     case 1:
-                        carroNS++;
+                        index = 0;
+                
+                        if(tipoVehiculo[index] > 0){
+                            Ambiente.actualizarAmbiente(vehiculoNS,reloj,"norteSur");
+                            carroNS++;
+
+                        }
+
                     break;    
 
                     case 2:
-                        busetaNS++;
+
+                        index = 1;
+                
+                        if(tipoVehiculo[index] > 0){
+                            Ambiente.actualizarAmbiente(vehiculoNS,reloj,"norteSur");
+                            busetaNS++;
+
+                        }
+
+
                     break;
 
                     case 3:
-                        camionNS++;
+                        index = 2;
+                
+                        if(tipoVehiculo[index] > 0){
+                            Ambiente.actualizarAmbiente(vehiculoNS,reloj,"norteSur");
+                            camionNS++;
+
+                        }
+
                     break;
 
                     case 4:
-                        masivoNS++;
-                    break;     
+                        index = 3;
+                
+                        if(tipoVehiculo[index] > 0){
+                            Ambiente.actualizarAmbiente(vehiculoNS,reloj,"norteSur");
+                            masivoNS++;
 
-                }                
-            }
-         // ubicarlo segun su tipoVehiculo en un carril
-        // actualizar ambiente (semaforos, colas) -> aplicar reglas   
+                        }
 
-        }
-        
-//        int [][] actualizacion = a.asignarCarrilNS(datosNS);  
-//        for(int x = 0 ; x < actualizacion.length ; x++){
-//            for(int j = 0;j < actualizacion[x].length; j++){
-//                    System.out.print(actualizacion[x][j] + " ");
-//                //System.out.print(actualizacion[x][j]);
-//            
-//            }
-//            System.out.println("L" + (x + 1));
-//        }
-        
-        //System.out.println("corredor SN"+vehiculoSNVector.size());
-        //System.out.println("corredor NS"+vehiculoNSVector.size());
+                    break;    
+
+                }//cierre switch    
+            }//cierre condicion null
+        }//cierre for
         
         //muestra los valores para el corredor norte sur
         System.out.println("norte sur " + carroNS + " " + busetaNS + " " + camionNS + " " + masivoNS);        
+
         //muestra los valores para el corredor sur norte
-        System.out.println("sur norte " + carroSN + " " + busetaSN + " " + camionSN + " " + masivoSN);
+        //System.out.println("sur norte " + carroSN + " " + busetaSN + " " + camionSN + " " + masivoSN);
         
     }
     
@@ -165,23 +150,23 @@ public class Controlador {
                                                      && aleatorio >= probabilidades[horario][3]) {
             carros++;
             return new Carro(1,1,1,0);
-        }
-        else if (aleatorio <= probabilidades[horario][1]    && aleatorio >= probabilidades[horario][2]
+        
+        }else if (aleatorio <= probabilidades[horario][1]   && aleatorio >= probabilidades[horario][2]
                                                             && aleatorio >= probabilidades[horario][3]) {
             busetas++;
+            
             return new Buseta(2,2,2,0);
-        }
-        else if (aleatorio <= probabilidades[horario][2] && aleatorio >= probabilidades[horario][3]) {
+        
+        }else if (aleatorio <= probabilidades[horario][2] && aleatorio >= probabilidades[horario][3]) {
             camiones++;
+            //JOptionPane.showMessageDialog(null, "camion");
             return new Camion(3,3,3,0);
-        }
-        else if (aleatorio <= probabilidades[horario][3]) {
+        
+        }else if (aleatorio <= probabilidades[horario][3]) {
             masivos++;
             return new Masivo(4,4,4,0);
         }
-        /*else {
-            generarVehiculo(horario, probabilidades);
-        }*/
+        
         return null;
     }
 }
